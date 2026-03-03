@@ -86,28 +86,31 @@ export default function Nav() {
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm">
-                  Services
+                <Link href="/investment" className="text-sm">
+                  Investment
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm">
-                  Portfolio
+                <Link href="/trading-management" className="text-sm">
+                  Trade Management
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-sm">
-                  Pricing
+                <Link href="/live-market" className="text-sm">
+                  Live Market
+                </Link>
+              </li>
+              <li>
+                <Link href="/about-us" className="text-sm">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-sm">
+                  Contact Us
                 </Link>
               </li>
             </ul>
-
-            <button
-              type="button"
-              className="bg-white text-gray-600 border border-gray-300 mt-6 text-sm hover:bg-gray-50 active:scale-95 transition-all w-40 h-11 rounded-full"
-            >
-              Get started
-            </button>
           </div>
         )}
       </nav>
