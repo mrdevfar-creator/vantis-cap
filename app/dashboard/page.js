@@ -68,6 +68,128 @@ function BalanceUpdatedModal({ oldBalance, newBalance, onClose }) {
 }
 
 
+
+// ── Trade Server Card ──────────────────────────────────────────────────────────
+function TradeServerCard({ deposits, userData }) {
+  const [serverNum, setServerNum] = useState(null);
+  const [tradeStatus, setTradeStatus] = useState(null); // "active" | "closing_soon" | "closed" | null
+  const [timeLeft, setTimeLeft] = useState(null);
+
+  // Generate a stable server number from userId (same user always gets same number)
+  const getServerNum = (uid) => {
+    const nums = [34, 21, 42, 8, 6, 54, 56, 32];
+    if (!uid) return nums[0];
+    const idx = uid.charCodeAt(0) % nums.length;
+    return nums[idx];
+  };
+
+  useEffect(() => {
+    if (!userData?.uid && !deposits) return;
+
+    // Get latest approved deposit
+    const approved = (deposits || []).filter(d => d.status === "APPROVED");
+    if (approved.length === 0) { setTradeStatus(null); return; }
+
+    approved.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const latest = approved[0];
+    const depositTime = new Date(latest.createdAt).getTime();
+    if (isNaN(depositTime)) { setTradeStatus("active"); return; }
+
+    setServerNum(getServerNum(latest.userId || latest.id));
+
+    const tick = () => {
+      const now = Date.now();
+      const elapsed = now - depositTime;
+      const total = 96 * 60 * 60 * 1000;
+      const remaining = total - elapsed;
+
+      if (remaining <= 0) {
+        setTradeStatus("closed");
+        setTimeLeft(null);
+      } else if (remaining <= 60 * 60 * 1000) {
+        setTradeStatus("closing_soon");
+        setTimeLeft(remaining);
+      } else {
+        setTradeStatus("active");
+        setTimeLeft(remaining);
+      }
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [deposits, userData]);
+
+  const formatCountdown = (ms) => {
+    if (!ms) return "";
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    if (h > 0) return `${h}h ${String(m).padStart(2,"0")}m ${String(s).padStart(2,"0")}s`;
+    return `${String(m).padStart(2,"0")}m ${String(s).padStart(2,"0")}s`;
+  };
+
+  if (!tradeStatus) return null;
+
+  if (tradeStatus === "closed") return (
+    <div className="flex items-start gap-4 p-5 bg-gray-500/5 border border-gray-500/15 rounded-2xl">
+      <div className="w-10 h-10 rounded-xl bg-gray-500/15 flex items-center justify-center shrink-0">
+        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-gray-300 font-semibold text-sm">Your trade has been closed</p>
+        <p className="text-gray-600 text-xs mt-1">The 96-hour trading period has ended. Make a new deposit to start trading again.</p>
+      </div>
+    </div>
+  );
+
+  if (tradeStatus === "closing_soon") return (
+    <div className="relative overflow-hidden flex items-start gap-4 p-5 bg-amber-500/8 border border-amber-500/20 rounded-2xl">
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent pointer-events-none" />
+      <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
+        <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+      </div>
+      <div className="flex-1">
+        <p className="text-amber-400 font-semibold text-sm">Trade closing soon</p>
+        <p className="text-gray-400 text-xs mt-1">
+          Your trade on <span className="text-white font-mono font-bold">Vantis Capital Server {serverNum}</span> is closing in{" "}
+          <span className="text-amber-400 font-bold font-mono">{formatCountdown(timeLeft)}</span>
+        </p>
+      </div>
+    </div>
+  );
+
+  // Active
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500/10 to-violet-500/5 border border-sky-500/20 p-5">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <p className="text-gray-400 text-xs font-medium uppercase tracking-widest">Live Trade</p>
+      </div>
+      <p className="text-white text-sm leading-relaxed">
+        Your trade amount is currently active on{" "}
+        <span className="text-sky-400 font-bold font-mono">Vantis Capital Server {serverNum}</span>
+      </p>
+      {timeLeft && (
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
+          <svg className="w-3.5 h-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-gray-500 text-xs">
+            Trade closes in{" "}
+            <span className="text-gray-300 font-mono font-medium">{formatCountdown(timeLeft)}</span>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Withdraw Tab Component ─────────────────────────────────────────────────────
 function WithdrawTab({ user, userData, deposits, withdrawalRequests }) {
   const [amount, setAmount] = useState("");
@@ -325,7 +447,7 @@ function WithdrawTab({ user, userData, deposits, withdrawalRequests }) {
 }
 
 // ── Shared content ─────────────────────────────────────────────────────────────
-function MainContent({ activeTab, setActiveTab, user, userData, editing, setEditing, formData, handleInputChange, handleUpdateProfile, updating, error, saveSuccess, deposits, withdrawalRequests }) {
+function MainContent({ activeTab, setActiveTab, user, userData, editing, setEditing, formData, handleInputChange, handleUpdateProfile, updating, error, saveSuccess, deposits, withdrawalRequests, notifications, markNotificationsRead }) {
 
   const STATS = [
     { label: "Balance", value: "$" + (userData?.balance || 0).toFixed(2), sub: userData?.balanceUpdatedAt ? "Updated " + userData.balanceUpdatedAt : "Available", grad: "from-amber-400 to-orange-500", bg: "from-amber-500/10 to-orange-500/5", border: "border-amber-500/15", d: "M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.172-.879-1.172-2.303 0-3.182.53-.399 1.19-.62 1.97-.62.78 0 1.44.221 1.97.62" },
@@ -356,6 +478,58 @@ function MainContent({ activeTab, setActiveTab, user, userData, editing, setEdit
       {/* OVERVIEW */}
       {activeTab === "overview" && (
         <div className="space-y-5">
+
+          {/* Notifications */}
+          {notifications?.length > 0 && (
+            <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  <p className="text-white font-semibold text-sm">Notifications</p>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-medium">{notifications.length}</span>
+                </div>
+                <button onClick={markNotificationsRead} className="text-gray-500 text-xs hover:text-gray-300 transition-colors">
+                  Mark all read
+                </button>
+              </div>
+              <div className="divide-y divide-white/[0.05]">
+                {notifications.map(n => (
+                  <div key={n.id} className={`flex items-start gap-4 px-5 py-4 ${
+                    n.type === "deposit_approved" || n.type === "withdrawal_completed" || n.type === "commission" ? "border-l-2 border-emerald-500/40" :
+                    n.type === "deposit_rejected" || n.type === "withdrawal_rejected" ? "border-l-2 border-red-500/40" :
+                    "border-l-2 border-amber-500/40"
+                  }`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                      n.type === "deposit_approved" ? "bg-emerald-500/15" :
+                      n.type === "deposit_rejected" || n.type === "withdrawal_rejected" ? "bg-red-500/15" :
+                      n.type === "withdrawal_completed" ? "bg-emerald-500/15" :
+                      n.type === "commission" ? "bg-violet-500/15" :
+                      "bg-amber-500/15"
+                    }`}>
+                      <svg className={`w-4 h-4 ${
+                        n.type === "deposit_approved" || n.type === "withdrawal_completed" ? "text-emerald-400" :
+                        n.type === "deposit_rejected" || n.type === "withdrawal_rejected" ? "text-red-400" :
+                        n.type === "commission" ? "text-violet-400" : "text-amber-400"
+                      }`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        {(n.type === "deposit_approved" || n.type === "withdrawal_completed") && <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />}
+                        {(n.type === "deposit_rejected" || n.type === "withdrawal_rejected") && <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />}
+                        {n.type === "commission" && <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.172-.879-1.172-2.303 0-3.182.53-.399 1.19-.62 1.97-.62.78 0 1.44.221 1.97.62" />}
+                        {n.type === "balance_updated" && <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />}
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-semibold">{n.title}</p>
+                      <p className="text-gray-400 text-xs mt-0.5 leading-relaxed">{n.message}</p>
+                      <p className="text-gray-600 text-[10px] mt-1">
+                        {n.createdAt ? new Date(n.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) : ""}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/15 p-6">
             <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
             <p className="text-amber-400/70 text-xs font-semibold uppercase tracking-widest mb-1">Welcome back</p>
@@ -663,12 +837,16 @@ function MainContent({ activeTab, setActiveTab, user, userData, editing, setEdit
               ))}
             </div>
           </div>
+          {/* Account status */}
           <div className="flex items-center gap-3 p-4 bg-emerald-500/5 border border-emerald-500/15 rounded-2xl">
             <div className="w-9 h-9 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
               <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <div><p className="text-emerald-400 font-semibold text-sm">Account Active</p><p className="text-gray-500 text-xs">Your account is in good standing</p></div>
           </div>
+
+          {/* Trade server card */}
+          <TradeServerCard deposits={deposits} userData={userData} />
         </div>
       )}
     </div>
@@ -689,14 +867,16 @@ export default function DashboardPage() {
   const [formData, setFormData] = useState({ name: "", phone: "", withdrawalAddress: "" });
   const [deposits, setDeposits] = useState([]);
   const [withdrawalRequests, setWithdrawalRequests] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
-        await loadUserData(user.uid);
+        loadUserData(user.uid);
         await fetchDeposits(user.uid);
         fetchWithdrawalRequests(user.uid);
+        fetchNotifications(user.uid);
       } else {
         router.push("/login");
       }
@@ -729,25 +909,46 @@ export default function DashboardPage() {
     return unsubscribe;
   };
 
-  const loadUserData = async (userId) => {
-    try {
-      const docSnap = await getDoc(doc(db, "users", userId));
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setUserData(data);
-        setFormData({ name: data.name || "", phone: data.phone || "", withdrawalAddress: data.withdrawalAddress || "" });
+  const fetchNotifications = (userId) => {
+    const q = query(
+      collection(db, "users", userId, "notifications"),
+      where("read", "==", false)
+    );
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setNotifications(data);
+    }, (err) => console.error("notifications error:", err));
+    return unsubscribe;
+  };
 
-        // Clear balanceUpdated flag silently (no modal)
-        if (data.balanceUpdated === true || data.withdrawalUpdated === true) {
-          await updateDoc(doc(db, "users", userId), {
-            balanceUpdated: false,
-            withdrawalUpdated: false,
-          });
+  const loadUserData = (userId) => {
+    const unsubscribe = onSnapshot(doc(db, "users", userId),
+      async (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUserData(data);
+          // Only set formData once (don't override user typing)
+          setFormData(prev =>
+            prev.name === "" && prev.phone === "" && prev.withdrawalAddress === ""
+              ? { name: data.name || "", phone: data.phone || "", withdrawalAddress: data.withdrawalAddress || "" }
+              : prev
+          );
+          // Clear balanceUpdated flag silently
+          if (data.balanceUpdated === true || data.withdrawalUpdated === true) {
+            await updateDoc(doc(db, "users", userId), {
+              balanceUpdated: false,
+              withdrawalUpdated: false,
+            });
+          }
+        } else {
+          setUserData({ name: "", phone: "", withdrawalAddress: "", balance: 0, totalDeposit: 0, totalWithdrawal: 0, status: "active", createdAt: new Date().toISOString(), tradingAccount: { type: "standard", leverage: "1:100", balance: 0 } });
         }
-      } else {
-        setUserData({ name: "", phone: "", withdrawalAddress: "", balance: 0, totalDeposit: 0, totalWithdrawal: 0, status: "active", createdAt: new Date().toISOString(), tradingAccount: { type: "standard", leverage: "1:100", balance: 0 } });
-      }
-    } catch (err) { setError("Failed to load data."); }
+      },
+      (err) => { setError("Failed to load data."); console.error(err); }
+    );
+    window.__userDataUnsub = unsubscribe;
+    return unsubscribe;
   };
 
   const handleLogout = async () => { try { await signOut(auth); router.push("/login"); } catch (e) {} };
@@ -785,7 +986,19 @@ export default function DashboardPage() {
     { key: "withdraw", label: "Withdraw", d: "M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" },
   ];
 
-  const contentProps = { activeTab, setActiveTab, user, userData, editing, setEditing, formData, handleInputChange, handleUpdateProfile, updating, error, saveSuccess, deposits, withdrawalRequests };
+  const markNotificationsRead = async () => {
+    if (!user || notifications.length === 0) return;
+    try {
+      const { writeBatch } = await import("firebase/firestore");
+      const batch = writeBatch(db);
+      notifications.forEach(n => {
+        batch.update(doc(db, "users", user.uid, "notifications", n.id), { read: true });
+      });
+      await batch.commit();
+    } catch (e) { console.error("mark read error:", e); }
+  };
+
+  const contentProps = { activeTab, setActiveTab, user, userData, editing, setEditing, formData, handleInputChange, handleUpdateProfile, updating, error, saveSuccess, deposits, withdrawalRequests, notifications, markNotificationsRead };
 
   return (
     <div className="min-h-screen bg-[#060810] text-white">
