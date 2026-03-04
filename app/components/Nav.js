@@ -14,6 +14,48 @@ const NAV_LINKS = [
   { label: "Contact Us", href: "/contact" },
 ];
 
+// Words cycle animation for mobile tagline
+function MobileTagline() {
+  const words = ["Trade The Future", "Invest Smarter", "Grow Wealth", "Trade The Future"];
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIndex((i) => (i + 1) % (words.length - 1));
+        setVisible(true);
+      }, 400);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
+
+  const word = words[index];
+  const colors = [
+    "text-amber-500", "text-red-500", "text-violet-500",
+  ];
+
+  return (
+    <div className="md:hidden flex-1 flex justify-center items-center px-2 overflow-hidden">
+      <p
+        className="text-[11px] font-bold uppercase tracking-[0.18em] transition-all duration-400"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0px)" : "translateY(-6px)",
+          transition: "opacity 0.4s ease, transform 0.4s ease",
+        }}
+      >
+        {word.split(" ").map((w, wi) => (
+          <span key={wi} className={`${colors[wi % colors.length]} ${wi > 0 ? "ml-[0.3em]" : ""}`}>
+            {w}
+          </span>
+        ))}
+      </p>
+    </div>
+  );
+}
+
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -58,6 +100,9 @@ export default function Nav() {
           />
         </Link>
 
+        {/* Mobile tagline */}
+        <MobileTagline />
+
         {/* Desktop links */}
         <ul className="hidden md:flex items-center gap-6 lg:gap-8">
           {NAV_LINKS.map((link) => (
@@ -99,7 +144,7 @@ export default function Nav() {
           data-mobile-menu
           aria-label="Toggle menu"
           onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
-          className="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors gap-[5px]"
+          className="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors gap-[5px] shrink-0"
         >
           <span className={`block w-[18px] h-[1.5px] bg-gray-600 rounded-full transition-all duration-300 origin-center ${menuOpen ? "translate-y-[6.5px] rotate-45" : ""}`} />
           <span className={`block w-[18px] h-[1.5px] bg-gray-600 rounded-full transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`} />
