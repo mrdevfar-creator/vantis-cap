@@ -7,19 +7,21 @@ import HowItWorks from "./components/HowItWorks";
 import LiveTrade from "./components/LiveTrade/LiveTrade";
 import Stats from "./components/Stats";
 import WantJoin from "./components/WantJoin";
+import Homepage from "./components/Homepage/Homepage";
 
 export default function Home() {
   return (
     <div>
-      <Hero />
+      <Homepage />
+      {/* <Hero /> */}
       {/* <HeroContent1 /> */}
-      <HeroSection />
+      {/* <HeroSection />
       <HomeFeature />
       <HomeFeature2 />
       <HowItWorks />
       <Stats />
       <LiveTrade />
-      <WantJoin />
+      <WantJoin /> */}
     </div>
   );
 }

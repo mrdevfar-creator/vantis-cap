@@ -60,12 +60,12 @@ export default function AboutCTA() {
           <div className="grid grid-cols-2 gap-4">
             {[
               {
-                value: "2012",
+                value: "2020",
                 label: "Year Founded",
                 accent: "from-amber-400 to-orange-500",
               },
               {
-                value: "$284M+",
+                value: "$45M+",
                 label: "Assets Managed",
                 accent: "from-emerald-400 to-teal-500",
               },
@@ -75,7 +75,7 @@ export default function AboutCTA() {
                 accent: "from-blue-400 to-indigo-500",
               },
               {
-                value: "12+",
+                value: "7+",
                 label: "Years Zero Capital Loss",
                 accent: "from-violet-400 to-purple-500",
               },

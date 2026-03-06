@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import Link from "next/link";
 
-const TRC20_ADDRESS = "TYourTRC20AddressHere"; // ← এখানে আপনার আসল TRC20 address দিন
+const TRC20_ADDRESS = "TMCcGQtYwM23E2p49oSE8pQZEB54mW1eZ3"; // ← এখানে আপনার আসল TRC20 address দিন
 
 export default function DepositPage() {
   const router = useRouter();
@@ -50,11 +50,11 @@ export default function DepositPage() {
   const handleSubmit = async () => {
     // Validation
     if (!formData.amount || !formData.txId) {
-      setError("সব তথ্য পূরণ করুন");
+      setError("Please fill every details carefully");
       return;
     }
     if (isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
-      setError("সঠিক পরিমাণ লিখুন");
+      setError("Input correct amount");
       return;
     }
 
@@ -78,7 +78,7 @@ export default function DepositPage() {
       setShowModal(true);
       setFormData({ amount: "", txId: "" });
     } catch (err) {
-      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন");
+      setError("Uh oh! an error occured");
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -88,7 +88,7 @@ export default function DepositPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0A0D14] flex items-center justify-center">
-        <p className="text-white">লোড হচ্ছে...</p>
+        <p className="text-white">Loading...</p>
       </div>
     );
   }
@@ -101,19 +101,21 @@ export default function DepositPage() {
           href="/dashboard"
           className="inline-flex items-center gap-2 text-gray-400 text-sm mb-8 hover:text-white transition-colors"
         >
-          ← ড্যাশবোর্ডে ফিরুন
+          ← Go to Dashboard
         </Link>
 
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-8">
-          <h1 className="text-2xl font-bold text-white mb-2">ডিপোজিট করুন</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">
+            Please Deposity
+          </h1>
           <p className="text-gray-400 text-sm mb-8">
-            USDT (TRC20) পাঠান এবং নিচের ফর্ম পূরণ করুন
+            Send USDT via TRX (TRC20) and fillup the form
           </p>
 
           {/* TRC20 Address */}
           <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-6">
             <p className="text-gray-400 text-xs font-medium uppercase tracking-widest mb-3">
-              আমাদের TRC20 Address
+              Our TRC20 Address
             </p>
             <div className="flex items-center gap-3">
               <p className="text-white text-sm font-mono break-all flex-1">
@@ -127,7 +129,8 @@ export default function DepositPage() {
               </button>
             </div>
             <p className="text-amber-400/70 text-xs mt-3">
-              ⚠️ শুধুমাত্র USDT TRC20 পাঠান। অন্য coin পাঠালে ফেরত পাবেন না।
+              ⚠️ Please deposit only USDT via TRX (TRC20) network. Unless you
+              can not get any return.
             </p>
           </div>
 
@@ -136,14 +139,14 @@ export default function DepositPage() {
             {/* Amount */}
             <div>
               <label className="text-gray-400 text-xs font-medium block mb-2">
-                কত USDT পাঠিয়েছেন? *
+                How many USDT do you sent? *
               </label>
               <input
                 type="number"
                 name="amount"
                 value={formData.amount}
                 onChange={handleChange}
-                placeholder="যেমন: 100"
+                placeholder="Example: $100"
                 className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-600 text-sm focus:outline-none focus:border-amber-400/50 transition-colors"
               />
             </div>
@@ -158,11 +161,12 @@ export default function DepositPage() {
                 name="txId"
                 value={formData.txId}
                 onChange={handleChange}
-                placeholder="Transaction hash টি paste করুন"
+                placeholder="Paste your transaction hash"
                 className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-600 text-sm focus:outline-none focus:border-amber-400/50 transition-colors"
               />
               <p className="text-gray-600 text-xs mt-1.5">
-                TronScan এ আপনার transaction এর hash টি copy করুন
+                Please copy your transaction hash from your Tronscan and paste
+                it below
               </p>
             </div>
 
@@ -179,7 +183,7 @@ export default function DepositPage() {
               disabled={submitting}
               className="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? "জমা হচ্ছে..." : "ডিপোজিট জমা দিন"}
+              {submitting ? "Deposit running..." : "Deposit your balance"}
             </button>
           </div>
         </div>
@@ -205,11 +209,11 @@ export default function DepositPage() {
               </svg>
             </div>
             <h2 className="text-white text-xl font-bold mb-2">
-              অনুরোধ জমা হয়েছে
+              Request Submitted
             </h2>
             <p className="text-gray-400 text-sm mb-6">
-              আপনার ডিপোজিট রিকোয়েস্ট পেন্ডিং আছে। Admin যাচাই করার পরে আপনার
-              ব্যালেন্স আপডেট হবে।
+              Your deposit request is pending now. Your balance will update
+              automatically after admin verification.
             </p>
             <button
               onClick={() => {
@@ -218,7 +222,7 @@ export default function DepositPage() {
               }}
               className="w-full py-3 bg-white text-black text-sm font-bold rounded-xl hover:bg-gray-100 transition-colors"
             >
-              ড্যাশবোর্ডে ফিরুন
+              Back to Dashboard
             </button>
           </div>
         </div>

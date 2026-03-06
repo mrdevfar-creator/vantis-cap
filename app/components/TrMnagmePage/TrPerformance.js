@@ -17,19 +17,21 @@ const monthlyData = [
   { month: "Dec", return: 3.6, cumulative: 46.3 },
 ];
 
+// Updated: starts from 2020 (7 years active), consistent with homepage
 const yearlyData = [
-  { year: "2020", return: 28.4 },
-  { year: "2021", return: 34.7 },
-  { year: "2022", return: 22.1 },
-  { year: "2023", return: 41.3 },
-  { year: "2024", return: 38.0 },
+  { year: "2020", return: 24.8 },
+  { year: "2021", return: 31.4 },
+  { year: "2022", return: 19.6 },
+  { year: "2023", return: 38.2 },
+  { year: "2024", return: 43.1 },
+  { year: "2025", return: 46.3 },
 ];
 
 const metrics = [
-  { label: "Total Return (2024)", value: "+38.0%", color: "text-emerald-400" },
-  { label: "Win Rate", value: "94.7%", color: "text-amber-400" },
-  { label: "Max Drawdown", value: "-4.2%", color: "text-rose-400" },
-  { label: "Sharpe Ratio", value: "2.84", color: "text-sky-400" },
+  { label: "Total Return (2025)", value: "+46.3%", color: "text-emerald-400" },
+  { label: "Win Rate", value: "78%", color: "text-amber-400" },
+  { label: "Max Drawdown", value: "-1.8%", color: "text-rose-400" },
+  { label: "Sharpe Ratio", value: "2.18", color: "text-sky-400" },
   { label: "Avg Monthly Return", value: "+3.86%", color: "text-violet-400" },
   { label: "Profitable Months", value: "10/12", color: "text-emerald-400" },
 ];
@@ -64,7 +66,7 @@ export default function TrPerformance() {
           </div>
 
           {/* Toggle */}
-          <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-1">
+          <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-1 w-fit">
             {["monthly", "yearly"].map((v) => (
               <button
                 key={v}
@@ -86,12 +88,12 @@ export default function TrPerformance() {
           <div className="lg:col-span-2 bg-white/[0.03] border border-white/[0.07] rounded-2xl p-7">
             <p className="text-gray-400 text-sm mb-6">
               {view === "monthly"
-                ? "Monthly Returns — 2024"
-                : "Annual Returns — 2020–2024"}
+                ? "Monthly Returns — 2025"
+                : "Annual Returns — 2020–2025 (7 Years)"}
             </p>
 
             {view === "monthly" ? (
-              <div className="flex items-end gap-2 h-48">
+              <div className="flex items-end gap-1.5 h-48">
                 {monthlyData.map((d) => (
                   <div
                     key={d.month}
@@ -102,7 +104,11 @@ export default function TrPerformance() {
                       style={{ height: "160px" }}
                     >
                       <div
-                        className={`w-full rounded-t-md transition-all duration-500 ${d.return >= 0 ? "bg-gradient-to-t from-emerald-600 to-emerald-400" : "bg-gradient-to-t from-rose-600 to-rose-400"}`}
+                        className={`w-full rounded-t-md transition-all duration-500 ${
+                          d.return >= 0
+                            ? "bg-gradient-to-t from-emerald-600 to-emerald-400"
+                            : "bg-gradient-to-t from-rose-600 to-rose-400"
+                        }`}
                         style={{
                           height: `${(Math.abs(d.return) / maxReturn) * 130}px`,
                           minHeight: "4px",
@@ -146,11 +152,10 @@ export default function TrPerformance() {
               </div>
             )}
 
-            {/* Cumulative line note */}
             {view === "monthly" && (
               <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
                 <p className="text-gray-500 text-xs">
-                  Cumulative return (2024)
+                  Cumulative return (2025)
                 </p>
                 <p className="text-emerald-400 text-lg font-bold">+46.3%</p>
               </div>
@@ -173,7 +178,7 @@ export default function TrPerformance() {
 
         <p className="mt-6 text-xs text-gray-700 text-center">
           Past performance is not indicative of future results. All figures are
-          audited and verified.
+          audited and verified. Platform active since 2020.
         </p>
       </div>
     </section>

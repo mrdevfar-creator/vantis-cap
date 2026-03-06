@@ -16,7 +16,12 @@ const NAV_LINKS = [
 
 // Words cycle animation for mobile tagline
 function MobileTagline() {
-  const words = ["Trade The Future", "Invest Smarter", "Grow Wealth", "Trade The Future"];
+  const words = [
+    "Trade The Future",
+    "Invest Smarter",
+    "Grow Wealth",
+    "Trade The Future",
+  ];
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
 
@@ -32,9 +37,7 @@ function MobileTagline() {
   }, []);
 
   const word = words[index];
-  const colors = [
-    "text-amber-500", "text-red-500", "text-violet-500",
-  ];
+  const colors = ["text-amber-500", "text-red-500", "text-violet-500"];
 
   return (
     <div className="md:hidden flex-1 flex justify-center items-center px-2 overflow-hidden">
@@ -47,7 +50,10 @@ function MobileTagline() {
         }}
       >
         {word.split(" ").map((w, wi) => (
-          <span key={wi} className={`${colors[wi % colors.length]} ${wi > 0 ? "ml-[0.3em]" : ""}`}>
+          <span
+            key={wi}
+            className={`${colors[wi % colors.length]} ${wi > 0 ? "ml-[0.3em]" : ""}`}
+          >
             {w}
           </span>
         ))}
@@ -80,14 +86,18 @@ export default function Nav() {
       {/* Promo Banner */}
       <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-orange-500 text-white text-center text-xs font-medium py-2 tracking-wide select-none">
         Exclusive Offer — Limited time bonus on first deposit.{" "}
-        <Link href="/signup" className="underline underline-offset-2 hover:opacity-80 transition-opacity">
+        <Link
+          href="/signup"
+          className="underline underline-offset-2 hover:opacity-80 transition-opacity"
+        >
           Get started now →
         </Link>
       </div>
 
       {/* Navbar */}
-      <nav className={`bg-white flex items-center justify-between h-[66px] px-5 md:px-10 lg:px-16 xl:px-24 border-b border-gray-100 transition-shadow duration-300 ${scrolled ? "shadow-md" : ""}`}>
-
+      <nav
+        className={`bg-white flex items-center justify-between h-[66px] px-5 md:px-10 lg:px-16 xl:px-24 border-b border-gray-100 transition-shadow duration-300 ${scrolled ? "shadow-md" : ""}`}
+      >
         {/* Logo */}
         <Link href="/" className="shrink-0">
           <Image
@@ -132,8 +142,18 @@ export default function Nav() {
           <Link href="/signup">
             <button className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-red-500 hover:from-amber-500 hover:to-red-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-200 active:scale-95">
               Get Started
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                />
               </svg>
             </button>
           </Link>
@@ -143,12 +163,21 @@ export default function Nav() {
         <button
           data-mobile-menu
           aria-label="Toggle menu"
-          onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((v) => !v);
+          }}
           className="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors gap-[5px] shrink-0"
         >
-          <span className={`block w-[18px] h-[1.5px] bg-gray-600 rounded-full transition-all duration-300 origin-center ${menuOpen ? "translate-y-[6.5px] rotate-45" : ""}`} />
-          <span className={`block w-[18px] h-[1.5px] bg-gray-600 rounded-full transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`} />
-          <span className={`block w-[18px] h-[1.5px] bg-gray-600 rounded-full transition-all duration-300 origin-center ${menuOpen ? "-translate-y-[6.5px] -rotate-45" : ""}`} />
+          <span
+            className={`block w-[18px] h-[1.5px] bg-gray-600 rounded-full transition-all duration-300 origin-center ${menuOpen ? "translate-y-[6.5px] rotate-45" : ""}`}
+          />
+          <span
+            className={`block w-[18px] h-[1.5px] bg-gray-600 rounded-full transition-all duration-300 ${menuOpen ? "opacity-0" : ""}`}
+          />
+          <span
+            className={`block w-[18px] h-[1.5px] bg-gray-600 rounded-full transition-all duration-300 origin-center ${menuOpen ? "-translate-y-[6.5px] -rotate-45" : ""}`}
+          />
         </button>
       </nav>
 
@@ -171,18 +200,36 @@ export default function Nav() {
                 )}
                 {link.label}
               </span>
-              <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              <svg
+                className="w-4 h-4 text-gray-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                />
               </svg>
             </Link>
           ))}
           <div className="flex gap-3 pt-4">
-            <Link href="/login" className="flex-1" onClick={() => setMenuOpen(false)}>
+            <Link
+              href="/login"
+              className="flex-1"
+              onClick={() => setMenuOpen(false)}
+            >
               <button className="w-full py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors">
                 Sign In
               </button>
             </Link>
-            <Link href="/signup" className="flex-1" onClick={() => setMenuOpen(false)}>
+            <Link
+              href="/signup"
+              className="flex-1"
+              onClick={() => setMenuOpen(false)}
+            >
               <button className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-red-500 text-white text-sm font-semibold hover:from-amber-500 hover:to-red-600 transition-all active:scale-95">
                 Get Started
               </button>

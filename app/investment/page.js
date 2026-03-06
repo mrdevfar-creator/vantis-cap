@@ -5,6 +5,7 @@ import HowItWorks from "../components/HowItWorks";
 import WhyChoose from "../components/InvestmentPage/WhyChoose";
 import InFaq from "../components/InvestmentPage/InFaq";
 import LiveTrade from "../components/LiveTrade/LiveTrade";
+import Investmentv2 from "../components/InvestmentPage/investmentv2";
 
 const page = () => {
   return (
@@ -12,11 +13,12 @@ const page = () => {
       <header>
         <title>Investment - Vantis Capital</title>
       </header>
-      <InHero />
+      <Investmentv2 />
+      {/* <InHero />
       <HowItWorks />
       <WhyChoose />
       <LiveTrade />
-      <InFaq />
+      <InFaq /> */}
     </>
   );
 };
