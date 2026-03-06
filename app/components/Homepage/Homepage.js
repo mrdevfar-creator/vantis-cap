@@ -670,7 +670,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed mb-5">
-                  "{t.text}"
+                  {t.text}
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F0B90B] to-orange-500 flex items-center justify-center text-black text-xs font-black shrink-0">
