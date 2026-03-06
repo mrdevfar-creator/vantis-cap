@@ -210,7 +210,7 @@ export default function Footer() {
         {/* ── Bottom bar ── */}
         <div className="border-t border-[#1E2329] pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-[#474D57] text-xs">
-            © 2020 – {currentYear} Vantis Capital. All rights reserved.
+            © 2019 – {currentYear} Vantis Capital. All rights reserved.
           </p>
           <div className="flex items-center gap-5 flex-wrap justify-center">
             {["Terms of Service", "Privacy Policy", "Risk Disclosure", "Cookie Policy"].map((item) => (

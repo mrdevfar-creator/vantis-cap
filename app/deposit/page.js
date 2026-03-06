@@ -105,9 +105,7 @@ export default function DepositPage() {
         </Link>
 
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-8">
-          <h1 className="text-2xl font-bold text-white mb-2">
-            Please Deposity
-          </h1>
+          <h1 className="text-2xl font-bold text-white mb-2">Deposit Area</h1>
           <p className="text-gray-400 text-sm mb-8">
             Send USDT via TRX (TRC20) and fillup the form
           </p>
@@ -166,7 +164,6 @@ export default function DepositPage() {
               />
               <p className="text-gray-600 text-xs mt-1.5">
                 Please copy your transaction hash from your Tronscan and paste
-                it below
               </p>
             </div>
 
@@ -183,7 +180,7 @@ export default function DepositPage() {
               disabled={submitting}
               className="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? "Deposit running..." : "Deposit your balance"}
+              {submitting ? "Deposit running..." : "Deposit"}
             </button>
           </div>
         </div>
