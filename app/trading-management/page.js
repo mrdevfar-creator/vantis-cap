@@ -6,6 +6,7 @@ import TrInvestmentplans from "../components/TrMnagmePage/TrInvestmentplans";
 import RiskStrategy from "../components/TrMnagmePage/RiskStrategy";
 import Testimonial from "../components/TrMnagmePage/Testimonial";
 import CtaSection from "../components/TrMnagmePage/CtaSection";
+import DepositArea from "../components/DepositArea";
 
 export const metadata = {
   title: "Trading Management - Vantis Capital",
@@ -17,7 +18,8 @@ const page = () => {
       <InvestHero />
       <TrPerformance />
       <TrHowitWork />
-      <TrInvestmentplans />
+      <DepositArea />
+      {/* <TrInvestmentplans /> */}
       <RiskStrategy />
       <Testimonial />
       <CtaSection />

@@ -1,12 +1,12 @@
 const milestones = [
   {
-    year: "2020",
+    year: "2019",
     title: "Founded in London",
     text: "Three ex-Goldman Sachs traders pooled their expertise to build a fund management firm with one rule: treat every client's capital like our own.",
     accent: "from-amber-400 to-orange-500",
   },
   {
-    year: "2021",
+    year: "2020",
     title: "First $10M AUM",
     text: "Word spread fast. Within 3 years, we crossed $10 million in assets under management with a track record of zero negative annual returns.",
     accent: "from-emerald-400 to-teal-500",

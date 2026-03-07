@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import DepositArea from "@/app/components/DepositArea";
+import LiveTrade from "../LiveTrade/LiveTrade";
 
 // ── Animated Chart Background ─────────────────────────────────────────────────
 function ChartBg() {
@@ -505,7 +506,7 @@ export default function HomePage() {
                 target: 7,
                 suffix: "+ Years",
                 label: "Platform Active",
-                sub: "Since 2017",
+                sub: "Since 2019",
                 prefix: "",
               },
               {
@@ -634,6 +635,9 @@ export default function HomePage() {
 
       {/* ── DEPOSIT PLANS ── */}
       <DepositArea />
+
+      {/* Live Trade */}
+      <LiveTrade />
 
       {/* ── TESTIMONIALS ── */}
       <section className="bg-white py-20 sm:py-24">

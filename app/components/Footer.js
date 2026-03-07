@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
+import FooterLogo from "../public/vantis-trs-logo.png";
 
 // ── Link data ─────────────────────────────────────────────────────────────────
 const COLUMNS = [
@@ -115,14 +117,13 @@ export default function Footer() {
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             {/* Logo */}
             <Link href="/" className="inline-flex items-center gap-2.5 mb-4 group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F0B90B] to-orange-500 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                </svg>
-              </div>
-              <span className="text-white font-black text-base tracking-tight group-hover:text-[#F0B90B] transition-colors">
-                Vantis<span className="text-[#F0B90B] group-hover:text-white transition-colors">Capital</span>
-              </span>
+              <Image
+                src={FooterLogo}
+                alt="Vantis Capital"
+                width={140}
+                height={40}
+                className="h-10 w-auto"
+              />
             </Link>
 
             <p className="text-[#848E9C] text-xs leading-relaxed mb-5">
