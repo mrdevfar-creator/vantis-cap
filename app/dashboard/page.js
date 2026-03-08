@@ -105,30 +105,35 @@ function WithdrawTab({ user, userData, deposits }) {
   const [error, setError] = useState("");
   const [timeLeft, setTimeLeft] = useState(null);
 
-  // Check if 1 hour has passed since last approved deposit
+  // Check if 96 hours have passed since last approved deposit
   const getWithdrawStatus = () => {
     if (!deposits || deposits.length === 0)
       return { allowed: false, reason: "no_deposit" };
-    const lastDeposit = deposits[0];
-    if (!lastDeposit.approvedAt)
+
+    // Find the most recent APPROVED deposit
+    const approvedDeposits = deposits
+      .filter(d => d.status === "APPROVED")
+      .sort((a, b) => {
+        const ta = a.approvedAt ? new Date(a.approvedAt).getTime() : 0;
+        const tb = b.approvedAt ? new Date(b.approvedAt).getTime() : 0;
+        return tb - ta;
+      });
+
+    if (approvedDeposits.length === 0)
       return { allowed: false, reason: "no_deposit" };
 
-    // Parse approvedAt — stored as locale string
-    const approvedTime = new Date(lastDeposit.approvedAt).getTime();
+    const lastApproved = approvedDeposits[0];
+    const approvedTime = new Date(lastApproved.approvedAt).getTime();
     const now = Date.now();
-    const oneHour = 60 * 60 * 1000;
+    const ninetySix = 96 * 60 * 60 * 1000;
     const elapsed = now - approvedTime;
 
-    if (isNaN(approvedTime) || approvedTime <= 0) {
-      // Try parsing as locale string fallback — use updatedAt instead
-      return { allowed: true };
-    }
-
-    if (elapsed >= oneHour) return { allowed: true };
+    if (isNaN(approvedTime) || approvedTime <= 0) return { allowed: true };
+    if (elapsed >= ninetySix) return { allowed: true };
     return {
       allowed: false,
       reason: "too_soon",
-      remaining: oneHour - elapsed,
+      remaining: ninetySix - elapsed,
       approvedTime,
     };
   };
@@ -150,8 +155,10 @@ function WithdrawTab({ user, userData, deposits }) {
 
   const formatTime = (ms) => {
     const totalSec = Math.floor(ms / 1000);
-    const m = Math.floor(totalSec / 60);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
+    if (h > 0) return `${h}h ${m.toString().padStart(2, "0")}m ${s.toString().padStart(2, "0")}s`;
     return `${m}m ${s.toString().padStart(2, "0")}s`;
   };
 
@@ -301,7 +308,7 @@ function WithdrawTab({ user, userData, deposits }) {
               {status.reason === "too_soon" && timeLeft && (
                 <div>
                   <p className="text-gray-500 text-xs mb-2">
-                    Your last deposit needs to be at least 1 hour old before you
+                    Your 96-hour trading cycle must complete before you
                     can withdraw.
                   </p>
                   <div className="flex items-center gap-2">
@@ -1027,6 +1034,61 @@ function MainContent({
               </p>
             </div>
           </div>
+
+          {/* ── Transaction History ── */}
+          <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
+              <p className="text-white font-semibold text-sm">Transaction History</p>
+              <span className="text-gray-600 text-xs">{deposits.length} records</span>
+            </div>
+            {deposits.length === 0 ? (
+              <div className="py-12 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                  </svg>
+                </div>
+                <p className="text-gray-600 text-sm">No transactions yet</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/[0.04]">
+                {deposits.map((dep) => {
+                  const isApproved = dep.status === "APPROVED";
+                  const isRejected = dep.status === "REJECTED";
+                  const isPending = dep.status === "PENDING";
+                  return (
+                    <div key={dep.id} className="flex items-center gap-4 px-5 py-4">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isApproved ? "bg-emerald-500/15" : isRejected ? "bg-rose-500/15" : "bg-amber-500/15"}`}>
+                        <svg className={`w-4 h-4 ${isApproved ? "text-emerald-400" : isRejected ? "text-rose-400" : "text-amber-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          {isApproved ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15M9 12l3 3m0 0l3-3m-3 3V2.25" />
+                          ) : isRejected ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          )}
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-semibold">Deposit</p>
+                        <p className="text-gray-600 text-xs truncate">
+                          {dep.createdAt
+                            ? new Date(dep.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                            : "—"}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-white font-bold text-sm">${(dep.amount || 0).toFixed(2)}</p>
+                        <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5 ${isApproved ? "bg-emerald-500/15 text-emerald-400" : isRejected ? "bg-rose-500/15 text-rose-400" : "bg-amber-500/15 text-amber-400"}`}>
+                          {dep.status}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -1067,16 +1129,22 @@ export default function DashboardPage() {
 
   const fetchDeposits = async (userId) => {
     try {
-      const { collection, query, where, getDocs, orderBy } =
+      const { collection, query, where, getDocs } =
         await import("firebase/firestore");
+      // No orderBy — avoids Firestore composite index requirement
       const q = query(
         collection(db, "deposits"),
         where("userId", "==", userId),
-        where("status", "==", "APPROVED"),
-        orderBy("approvedAt", "desc"),
       );
       const snap = await getDocs(q);
-      setDeposits(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // Sort client-side: newest first
+      docs.sort((a, b) => {
+        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return tb - ta;
+      });
+      setDeposits(docs);
     } catch (e) {
       console.error("fetch deposits error:", e);
     }
@@ -1454,60 +1522,36 @@ export default function DashboardPage() {
           <MainContent {...contentProps} />
         </main>
         <nav className="fixed bottom-0 left-0 right-0 z-20 bg-[#0D1117]/95 backdrop-blur-xl border-t border-white/[0.08] flex items-center justify-around px-2 py-2">
-          {NAV.map((item) => (
+          {NAV.filter(item => user?.email === ADMIN_EMAIL ? item.key !== "withdraw" : true).map((item) => (
             <button
               key={item.key}
               onClick={() => setActiveTab(item.key)}
-              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${activeTab === item.key ? "text-amber-400" : "text-gray-600"}`}
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${activeTab === item.key ? "text-amber-400" : "text-gray-600"}`}
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-              >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d={item.d} />
               </svg>
               <span className="text-[10px] font-medium">{item.label}</span>
             </button>
           ))}
-          <Link
-            href="/deposit"
-            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-emerald-400"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.8}
+          {user?.email !== ADMIN_EMAIL && (
+            <Link
+              href="/deposit"
+              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-emerald-400"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-            <span className="text-[10px] font-medium">Deposit</span>
-          </Link>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              <span className="text-[10px] font-medium">Deposit</span>
+            </Link>
+          )}
           {user?.email === ADMIN_EMAIL && (
             <Link
               href="/admin"
-              className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-amber-400"
+              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-amber-400"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
-                />
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
               <span className="text-[10px] font-medium">Admin</span>
             </Link>
