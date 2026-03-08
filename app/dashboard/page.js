@@ -415,6 +415,8 @@ function MainContent({
   error,
   saveSuccess,
   deposits,
+  withdrawals,
+  profilePct,
 }) {
   const STATS = [
     {
@@ -510,17 +512,46 @@ function MainContent({
       {/* OVERVIEW */}
       {activeTab === "overview" && (
         <div className="space-y-5">
+          {/* Animated Welcome Card with Plan Badge */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/15 p-6">
             <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-            <p className="text-amber-400/70 text-xs font-semibold uppercase tracking-widest mb-1">
-              Welcome back
-            </p>
-            <h2 className="text-2xl font-bold text-white mb-1">
-              {userData?.name || user?.email?.split("@")[0]} 👋
-            </h2>
-            <p className="text-gray-500 text-sm">
-              Here is your portfolio overview.
-            </p>
+            {/* Animated shimmer */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+              <div className="absolute -inset-x-full top-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent animate-[shimmer_3s_linear_infinite]" style={{animationDuration:"3s"}} />
+            </div>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-amber-400/70 text-xs font-semibold uppercase tracking-widest mb-1">Welcome back</p>
+                <h2 className="text-2xl font-bold text-white mb-1">
+                  {userData?.name || user?.email?.split("@")[0]} 👋
+                </h2>
+                <p className="text-gray-500 text-sm">Here is your portfolio overview.</p>
+              </div>
+              {/* Animated Plan Badge */}
+              {(() => {
+                const PLAN_MAP = {
+                  starter: { label:"Starter", emoji:"🌱", color:"from-blue-500 to-blue-700", border:"border-blue-500/30", profit:"10%" },
+                  inner:   { label:"Inner",   emoji:"💎", color:"from-emerald-500 to-emerald-700", border:"border-emerald-500/30", profit:"13%" },
+                  smart:   { label:"Smart",   emoji:"🧠", color:"from-violet-500 to-violet-700", border:"border-violet-500/30", profit:"15%" },
+                  grower:  { label:"Grower",  emoji:"📈", color:"from-orange-500 to-orange-700", border:"border-orange-500/30", profit:"17%" },
+                  ninja:   { label:"Ninja",   emoji:"⚡", color:"from-pink-500 to-pink-700", border:"border-pink-500/30", profit:"18%" },
+                  master:  { label:"Master",  emoji:"👑", color:"from-amber-400 to-yellow-600", border:"border-amber-400/30", profit:"20%" },
+                  standard:{ label:"Standard",emoji:"🌱", color:"from-blue-500 to-blue-700", border:"border-blue-500/30", profit:"10%" },
+                  silver:  { label:"Silver",  emoji:"🥈", color:"from-gray-400 to-gray-600", border:"border-gray-400/30", profit:"13%" },
+                  gold:    { label:"Gold",    emoji:"🥇", color:"from-amber-400 to-yellow-600", border:"border-amber-400/30", profit:"20%" },
+                };
+                const type = (userData?.tradingAccount?.type || "standard").toLowerCase();
+                const p = PLAN_MAP[type] || PLAN_MAP.standard;
+                return (
+                  <div className={`shrink-0 relative overflow-hidden rounded-2xl bg-gradient-to-br ${p.color} p-4 min-w-[100px] text-center border ${p.border} shadow-lg`}>
+                    <div className="absolute inset-0 bg-white/5 animate-pulse" style={{animationDuration:"2s"}} />
+                    <div className="text-2xl mb-1">{p.emoji}</div>
+                    <p className="text-white text-xs font-bold">{p.label}</p>
+                    <p className="text-white/70 text-[10px]">+{p.profit} / cycle</p>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -801,6 +832,61 @@ function MainContent({
             );
           })()}
 
+          {/* ── Profile Completion Bar ── */}
+          {profilePct < 100 && (
+            <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-white text-sm font-semibold">Profile Completion</p>
+                  <p className="text-gray-600 text-xs mt-0.5">
+                    {profilePct < 60
+                      ? "Complete your profile to unlock all features"
+                      : profilePct < 100
+                      ? "Almost there! A few more steps remaining"
+                      : "Profile complete ✓"}
+                  </p>
+                </div>
+                <span className={`text-lg font-black ${profilePct < 60 ? "text-rose-400" : profilePct < 100 ? "text-amber-400" : "text-emerald-400"}`}>
+                  {profilePct}%
+                </span>
+              </div>
+              {/* Animated progress bar */}
+              <div className="h-2 bg-white/[0.05] rounded-full overflow-hidden mb-4">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 relative overflow-hidden ${profilePct < 60 ? "bg-gradient-to-r from-rose-500 to-pink-400" : profilePct < 100 ? "bg-gradient-to-r from-amber-400 to-orange-400" : "bg-gradient-to-r from-emerald-400 to-teal-400"}`}
+                  style={{ width: `${profilePct}%` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_linear_infinite]" />
+                </div>
+              </div>
+              {/* Checklist */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  { label: "Full Name",    done: !!userData?.name,                  action: "profile" },
+                  { label: "Phone Number", done: !!userData?.phone,                 action: "profile" },
+                  { label: "Wallet Address",done: !!userData?.withdrawalAddress,    action: "profile" },
+                  { label: "First Deposit",done: !!(userData?.totalDeposit > 0),    action: null },
+                  { label: "Referral Code",done: !!(userData?.referralCode),        action: null },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    onClick={() => item.action && setActiveTab(item.action)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all ${
+                      item.done
+                        ? "bg-emerald-500/8 border border-emerald-500/15 text-emerald-400"
+                        : item.action
+                        ? "bg-white/[0.03] border border-white/[0.07] text-gray-500 cursor-pointer hover:border-amber-400/30 hover:text-amber-400"
+                        : "bg-white/[0.03] border border-white/[0.07] text-gray-600"
+                    }`}
+                  >
+                    <span className="text-sm">{item.done ? "✓" : "○"}</span>
+                    {item.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
             <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-4">
               Account Information
@@ -960,7 +1046,73 @@ function MainContent({
 
       {/* WITHDRAW */}
       {activeTab === "withdraw" && (
-        <WithdrawTab user={user} userData={userData} deposits={deposits} />
+        <div className="space-y-5">
+          <WithdrawTab user={user} userData={userData} deposits={deposits} />
+
+          {/* ── Withdrawal Request History ── */}
+          {withdrawals && withdrawals.length > 0 && (
+            <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
+                <p className="text-white font-semibold text-sm">Withdrawal Requests</p>
+                <span className="text-gray-600 text-xs">{withdrawals.length} request{withdrawals.length > 1 ? "s" : ""}</span>
+              </div>
+              <div className="divide-y divide-white/[0.04]">
+                {withdrawals.map((w) => {
+                  const isPending   = w.status === "PENDING";
+                  const isApproved  = w.status === "APPROVED" || w.status === "COMPLETED";
+                  const isRejected  = w.status === "REJECTED";
+                  return (
+                    <div key={w.id} className="px-5 py-4">
+                      <div className="flex items-center gap-4 mb-3">
+                        {/* Animated status icon */}
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden ${isPending ? "bg-amber-500/15" : isApproved ? "bg-emerald-500/15" : "bg-rose-500/15"}`}>
+                          {isPending && <div className="absolute inset-0 bg-amber-400/10 animate-pulse" />}
+                          <svg className={`w-5 h-5 relative z-10 ${isPending ? "text-amber-400" : isApproved ? "text-emerald-400" : "text-rose-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            {isApproved
+                              ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              : isRejected
+                              ? <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              : <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            }
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <p className="text-white font-bold">${(w.amount || 0).toFixed(2)}</p>
+                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${isPending ? "bg-amber-500/15 text-amber-400" : isApproved ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"}`}>
+                              {w.status}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 text-xs truncate font-mono">{w.address || "—"}</p>
+                          <p className="text-gray-700 text-[10px] mt-0.5">{w.requestedAt || w.createdAt?.slice(0,10) || "—"}</p>
+                        </div>
+                      </div>
+
+                      {/* Animated status pipeline */}
+                      <div className="flex items-center gap-1">
+                        {["Requested", "Processing", "Completed"].map((step, i) => {
+                          const stepDone = isApproved ? true : isPending ? i === 0 : false;
+                          const stepActive = isPending && i === 1;
+                          return (
+                            <div key={step} className="flex items-center gap-1 flex-1">
+                              <div className={`flex-1 flex flex-col items-center gap-1`}>
+                                <div className={`w-full h-1 rounded-full transition-all duration-700 ${stepDone ? "bg-emerald-400" : stepActive ? "bg-amber-400/50" : "bg-white/[0.06]"} relative overflow-hidden`}>
+                                  {stepActive && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent animate-[shimmer_1.5s_linear_infinite]" />}
+                                </div>
+                                <span className={`text-[9px] font-medium ${stepDone ? "text-emerald-400" : stepActive ? "text-amber-400" : "text-gray-700"}`}>{step}</span>
+                              </div>
+                              {i < 2 && <div className={`w-1 h-1 rounded-full mb-3 shrink-0 ${stepDone ? "bg-emerald-400" : "bg-white/[0.08]"}`} />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* REFERRAL */}
@@ -1290,6 +1442,8 @@ export default function DashboardPage() {
     withdrawalAddress: "",
   });
   const [deposits, setDeposits] = useState([]);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [profilePct, setProfilePct] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -1297,6 +1451,7 @@ export default function DashboardPage() {
         setUser(user);
         await loadUserData(user.uid);
         await fetchDeposits(user.uid);
+        await fetchWithdrawals(user.uid);
       } else {
         router.push("/login");
       }
@@ -1328,6 +1483,23 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchWithdrawals = async (userId) => {
+    try {
+      const { collection, query, where, getDocs } = await import("firebase/firestore");
+      const q = query(collection(db, "withdrawals"), where("userId", "==", userId));
+      const snap = await getDocs(q);
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => {
+        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return tb - ta;
+      });
+      setWithdrawals(docs);
+    } catch (e) {
+      console.error("fetch withdrawals error:", e);
+    }
+  };
+
   const loadUserData = async (userId) => {
     try {
       const docSnap = await getDoc(doc(db, "users", userId));
@@ -1339,6 +1511,15 @@ export default function DashboardPage() {
           phone: data.phone || "",
           withdrawalAddress: data.withdrawalAddress || "",
         });
+        // Calculate profile completion
+        const fields = [
+          !!data.name,
+          !!data.phone,
+          !!data.withdrawalAddress,
+          !!(data.totalDeposit > 0),
+          !!(data.referralCode),
+        ];
+        setProfilePct(Math.round((fields.filter(Boolean).length / fields.length) * 100));
 
         // Clear balanceUpdated flag silently (no modal)
         if (data.balanceUpdated === true || data.withdrawalUpdated === true) {
@@ -1471,6 +1652,8 @@ export default function DashboardPage() {
     error,
     saveSuccess,
     deposits,
+    withdrawals,
+    profilePct,
   };
 
   return (
