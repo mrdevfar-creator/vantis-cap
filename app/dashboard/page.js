@@ -11,6 +11,29 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 const ADMIN_EMAIL = "khaialamu@gmail.com";
 
 // ── Balance Updated Modal (shown to user when admin updates balance) ───────────
+// ── Plan logic: based on latest approved deposit amount ────────────────────────
+// $50-99 → Starter 10% | $100-149 → Inner 13% | $150-199 → Smart 15%
+// $200-249 → Grower 17% | $250-299 → Ninja 18% | $300+ → Master 20%
+const PLANS = [
+  { key:"master",  min:300, max:Infinity, profit:0.20, label:"Master",  emoji:"👑", color:"from-amber-400 to-yellow-600",   border:"border-amber-400/30",   profitStr:"20%" },
+  { key:"ninja",   min:250, max:299,      profit:0.18, label:"Ninja",   emoji:"⚡", color:"from-pink-500 to-pink-700",      border:"border-pink-500/30",    profitStr:"18%" },
+  { key:"grower",  min:200, max:249,      profit:0.17, label:"Grower",  emoji:"📈", color:"from-orange-500 to-orange-700",  border:"border-orange-500/30",  profitStr:"17%" },
+  { key:"smart",   min:150, max:199,      profit:0.15, label:"Smart",   emoji:"🧠", color:"from-violet-500 to-violet-700",  border:"border-violet-500/30",  profitStr:"15%" },
+  { key:"inner",   min:100, max:149,      profit:0.13, label:"Inner",   emoji:"💎", color:"from-emerald-500 to-emerald-700",border:"border-emerald-500/30", profitStr:"13%" },
+  { key:"starter", min:50,  max:99,       profit:0.10, label:"Starter", emoji:"🌱", color:"from-blue-500 to-blue-700",      border:"border-blue-500/30",    profitStr:"10%" },
+];
+const DEFAULT_PLAN = PLANS[PLANS.length - 1]; // Starter as fallback
+
+function getActivePlan(deposits) {
+  // Find latest approved deposit
+  const approved = (deposits || [])
+    .filter(d => d.status === "APPROVED")
+    .sort((a, b) => new Date(b.approvedAt || 0).getTime() - new Date(a.approvedAt || 0).getTime());
+  if (!approved.length) return DEFAULT_PLAN;
+  const amount = approved[0].amount || 0;
+  return PLANS.find(p => amount >= p.min && amount <= p.max) || DEFAULT_PLAN;
+}
+
 function BalanceUpdatedModal({ oldBalance, newBalance, onClose }) {
   const diff = newBalance - oldBalance;
   const increased = diff >= 0;
@@ -529,25 +552,13 @@ function MainContent({
               </div>
               {/* Animated Plan Badge */}
               {(() => {
-                const PLAN_MAP = {
-                  starter: { label:"Starter", emoji:"🌱", color:"from-blue-500 to-blue-700", border:"border-blue-500/30", profit:"10%" },
-                  inner:   { label:"Inner",   emoji:"💎", color:"from-emerald-500 to-emerald-700", border:"border-emerald-500/30", profit:"13%" },
-                  smart:   { label:"Smart",   emoji:"🧠", color:"from-violet-500 to-violet-700", border:"border-violet-500/30", profit:"15%" },
-                  grower:  { label:"Grower",  emoji:"📈", color:"from-orange-500 to-orange-700", border:"border-orange-500/30", profit:"17%" },
-                  ninja:   { label:"Ninja",   emoji:"⚡", color:"from-pink-500 to-pink-700", border:"border-pink-500/30", profit:"18%" },
-                  master:  { label:"Master",  emoji:"👑", color:"from-amber-400 to-yellow-600", border:"border-amber-400/30", profit:"20%" },
-                  standard:{ label:"Standard",emoji:"🌱", color:"from-blue-500 to-blue-700", border:"border-blue-500/30", profit:"10%" },
-                  silver:  { label:"Silver",  emoji:"🥈", color:"from-gray-400 to-gray-600", border:"border-gray-400/30", profit:"13%" },
-                  gold:    { label:"Gold",    emoji:"🥇", color:"from-amber-400 to-yellow-600", border:"border-amber-400/30", profit:"20%" },
-                };
-                const type = (userData?.tradingAccount?.type || "standard").toLowerCase();
-                const p = PLAN_MAP[type] || PLAN_MAP.standard;
+                const p = getActivePlan(deposits);
                 return (
                   <div className={`shrink-0 relative overflow-hidden rounded-2xl bg-gradient-to-br ${p.color} p-4 min-w-[100px] text-center border ${p.border} shadow-lg`}>
                     <div className="absolute inset-0 bg-white/5 animate-pulse" style={{animationDuration:"2s"}} />
                     <div className="text-2xl mb-1">{p.emoji}</div>
                     <p className="text-white text-xs font-bold">{p.label}</p>
-                    <p className="text-white/70 text-[10px]">+{p.profit} / cycle</p>
+                    <p className="text-white/70 text-[10px]">+{p.profitStr} / cycle</p>
                   </div>
                 );
               })()}
@@ -708,23 +719,16 @@ function MainContent({
 
           {/* ── Cycle Progress Bar + Earnings Estimator ── */}
           {(() => {
-            // Plan rates map
-            const PLAN_RATES = {
-              starter: { profit: 0.10, label: "Starter", color: "from-blue-400 to-blue-600" },
-              inner:   { profit: 0.13, label: "Inner",   color: "from-emerald-400 to-emerald-600" },
-              smart:   { profit: 0.15, label: "Smart",   color: "from-violet-400 to-violet-600" },
-              grower:  { profit: 0.17, label: "Grower",  color: "from-orange-400 to-orange-600" },
-              ninja:   { profit: 0.18, label: "Ninja",   color: "from-pink-400 to-pink-600" },
-              master:  { profit: 0.20, label: "Master",  color: "from-amber-400 to-yellow-500" },
-              standard:{ profit: 0.10, label: "Standard",color: "from-blue-400 to-blue-600" },
-              silver:  { profit: 0.13, label: "Silver",  color: "from-gray-300 to-gray-500" },
-              gold:    { profit: 0.20, label: "Gold",    color: "from-amber-400 to-yellow-500" },
-            };
-            const accountType = (userData?.tradingAccount?.type || "standard").toLowerCase();
-            const plan = PLAN_RATES[accountType] || PLAN_RATES.standard;
-            const balance = userData?.totalDeposit || 0;
-            const estimatedProfit = balance * plan.profit;
-            const estimatedTotal = balance + estimatedProfit;
+            // Use shared getActivePlan — based on latest approved deposit amount
+            const plan = getActivePlan(deposits);
+            // Estimate based on latest approved deposit amount (not total)
+            const approvedAmt = (() => {
+              const a = (deposits || []).filter(d => d.status === "APPROVED")
+                .sort((x,y) => new Date(y.approvedAt||0).getTime() - new Date(x.approvedAt||0).getTime());
+              return a.length ? (a[0].amount || 0) : 0;
+            })();
+            const estimatedProfit = approvedAmt * plan.profit;
+            const estimatedTotal = approvedAmt + estimatedProfit;
 
             // Cycle progress
             const approvedDeposits = deposits.filter(d => d.status === "APPROVED")
@@ -813,11 +817,11 @@ function MainContent({
                   </div>
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-xs">Your Deposit</span>
-                      <span className="text-white text-sm font-semibold">${balance.toFixed(2)}</span>
+                      <span className="text-gray-500 text-xs">Latest Deposit</span>
+                      <span className="text-white text-sm font-semibold">${approvedAmt.toFixed(2)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-xs">Estimated Profit (+{(plan.profit * 100).toFixed(0)}%)</span>
+                      <span className="text-gray-500 text-xs">Estimated Profit (+{plan.profitStr})</span>
                       <span className="text-emerald-400 text-sm font-bold">+${estimatedProfit.toFixed(2)}</span>
                     </div>
                     <div className="h-px bg-white/[0.06]" />
