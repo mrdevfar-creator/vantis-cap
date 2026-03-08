@@ -378,6 +378,28 @@ function WithdrawTab({ user, userData, deposits }) {
   );
 }
 
+// ── Cycle Countdown (live ticking) ────────────────────────────────────────────
+function CycleCountdown({ initialMs }) {
+  const [ms, setMs] = useState(initialMs);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMs(prev => {
+        if (prev <= 1000) { clearInterval(interval); return 0; }
+        return prev - 1000;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const fmt = h > 0
+    ? `${h}h ${String(m).padStart(2,"0")}m ${String(sec).padStart(2,"0")}s`
+    : `${m}m ${String(sec).padStart(2,"0")}s`;
+  return <span className="text-amber-400 font-mono font-bold">{fmt}</span>;
+}
+
 // ── Shared content ─────────────────────────────────────────────────────────────
 function MainContent({
   activeTab,
@@ -653,6 +675,132 @@ function MainContent({
             </button>
           </div>
 
+          {/* ── Cycle Progress Bar + Earnings Estimator ── */}
+          {(() => {
+            // Plan rates map
+            const PLAN_RATES = {
+              starter: { profit: 0.10, label: "Starter", color: "from-blue-400 to-blue-600" },
+              inner:   { profit: 0.13, label: "Inner",   color: "from-emerald-400 to-emerald-600" },
+              smart:   { profit: 0.15, label: "Smart",   color: "from-violet-400 to-violet-600" },
+              grower:  { profit: 0.17, label: "Grower",  color: "from-orange-400 to-orange-600" },
+              ninja:   { profit: 0.18, label: "Ninja",   color: "from-pink-400 to-pink-600" },
+              master:  { profit: 0.20, label: "Master",  color: "from-amber-400 to-yellow-500" },
+              standard:{ profit: 0.10, label: "Standard",color: "from-blue-400 to-blue-600" },
+              silver:  { profit: 0.13, label: "Silver",  color: "from-gray-300 to-gray-500" },
+              gold:    { profit: 0.20, label: "Gold",    color: "from-amber-400 to-yellow-500" },
+            };
+            const accountType = (userData?.tradingAccount?.type || "standard").toLowerCase();
+            const plan = PLAN_RATES[accountType] || PLAN_RATES.standard;
+            const balance = userData?.totalDeposit || 0;
+            const estimatedProfit = balance * plan.profit;
+            const estimatedTotal = balance + estimatedProfit;
+
+            // Cycle progress
+            const approvedDeposits = deposits.filter(d => d.status === "APPROVED")
+              .sort((a, b) => new Date(b.approvedAt).getTime() - new Date(a.approvedAt).getTime());
+            const lastApproved = approvedDeposits[0];
+            const cycleMs = 96 * 60 * 60 * 1000;
+            let progressPct = 0;
+            let cycleActive = false;
+            let timeLeftMs = 0;
+            let cycleComplete = false;
+
+            if (lastApproved?.approvedAt) {
+              const approvedTime = new Date(lastApproved.approvedAt).getTime();
+              const elapsed = Date.now() - approvedTime;
+              if (!isNaN(approvedTime) && approvedTime > 0) {
+                if (elapsed >= cycleMs) {
+                  progressPct = 100;
+                  cycleComplete = true;
+                } else {
+                  progressPct = Math.min((elapsed / cycleMs) * 100, 100);
+                  timeLeftMs = cycleMs - elapsed;
+                  cycleActive = true;
+                }
+              }
+            }
+
+            const fmtTime = (ms) => {
+              const s = Math.floor(ms / 1000);
+              const h = Math.floor(s / 3600);
+              const m = Math.floor((s % 3600) / 60);
+              const sec = s % 60;
+              return h > 0 ? `${h}h ${String(m).padStart(2,"0")}m ${String(sec).padStart(2,"0")}s` : `${m}m ${String(sec).padStart(2,"0")}s`;
+            };
+
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Cycle Progress */}
+                <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-white text-sm font-semibold">96h Trading Cycle</p>
+                    {cycleComplete && (
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+                        ✓ Complete
+                      </span>
+                    )}
+                    {cycleActive && (
+                      <span className="flex items-center gap-1.5 text-[10px] font-semibold text-amber-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        In Progress
+                      </span>
+                    )}
+                    {!cycleActive && !cycleComplete && (
+                      <span className="text-[10px] font-semibold text-gray-600">No active cycle</span>
+                    )}
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="h-2.5 bg-white/[0.05] rounded-full overflow-hidden mb-3">
+                    <div
+                      className={`h-full rounded-full transition-all duration-1000 bg-gradient-to-r ${cycleComplete ? "from-emerald-400 to-teal-400" : "from-amber-400 to-orange-500"}`}
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">{progressPct.toFixed(1)}% complete</span>
+                    {cycleActive && timeLeftMs > 0 && (
+                      <CycleCountdown initialMs={timeLeftMs} />
+                    )}
+                    {cycleComplete && (
+                      <span className="text-emerald-400 font-semibold">Withdrawal unlocked!</span>
+                    )}
+                    {!cycleActive && !cycleComplete && (
+                      <span className="text-gray-600">Deposit to start</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Earnings Estimator */}
+                <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-white text-sm font-semibold">Earnings Estimator</p>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full bg-gradient-to-r ${plan.color} text-white`}>
+                      {plan.label}
+                    </span>
+                  </div>
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500 text-xs">Your Deposit</span>
+                      <span className="text-white text-sm font-semibold">${balance.toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500 text-xs">Estimated Profit (+{(plan.profit * 100).toFixed(0)}%)</span>
+                      <span className="text-emerald-400 text-sm font-bold">+${estimatedProfit.toFixed(2)}</span>
+                    </div>
+                    <div className="h-px bg-white/[0.06]" />
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-xs font-semibold">Total After Cycle</span>
+                      <span className="text-amber-400 text-base font-bold">${estimatedTotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 text-[10px] mt-3">Based on your {plan.label} plan after one 96h cycle.</p>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
             <p className="text-gray-500 text-xs font-semibold uppercase tracking-widest mb-4">
               Account Information
@@ -847,6 +995,36 @@ function MainContent({
                 className="shrink-0 px-3 py-1.5 bg-amber-500/15 text-amber-400 border border-amber-500/20 text-xs font-medium rounded-lg hover:bg-amber-500/25 transition-colors"
               >
                 Copy Link
+              </button>
+            </div>
+
+            {/* Share buttons */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  const link = `${window.location.origin}/signup?ref=${userData?.referralCode}&uid=${user?.uid}`;
+                  const msg = encodeURIComponent(`🚀 Join Vantis Capital and start earning with algorithmic trading!\n\nUse my referral link: ${link}`);
+                  window.open(`https://wa.me/?text=${msg}`, "_blank");
+                }}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-xs font-semibold hover:bg-[#25D366]/20 transition-colors"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                WhatsApp
+              </button>
+              <button
+                onClick={() => {
+                  const link = `${window.location.origin}/signup?ref=${userData?.referralCode}&uid=${user?.uid}`;
+                  const msg = encodeURIComponent(`🚀 Join Vantis Capital and start earning with algorithmic trading!\n\nUse my referral link: ${link}`);
+                  window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${msg}`, "_blank");
+                }}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#229ED9]/10 border border-[#229ED9]/20 text-[#229ED9] text-xs font-semibold hover:bg-[#229ED9]/20 transition-colors"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                </svg>
+                Telegram
               </button>
             </div>
           </div>
