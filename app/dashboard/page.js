@@ -1,7 +1,7 @@
 // app/dashboard/page.js
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { auth, db } from "../lib/firebase";
@@ -32,6 +32,171 @@ function getActivePlan(deposits) {
   if (!approved.length) return DEFAULT_PLAN;
   const amount = approved[0].amount || 0;
   return PLANS.find(p => amount >= p.min && amount <= p.max) || DEFAULT_PLAN;
+}
+
+// ── 1. Live Portfolio Ticker ───────────────────────────────────────────────────
+function LiveTicker({ balance, plan }) {
+  const [displayed, setDisplayed] = useState(balance);
+  const targetRef = useRef(balance);
+  useEffect(() => {
+    targetRef.current = balance;
+    setDisplayed(balance);
+  }, [balance]);
+  useEffect(() => {
+    if (!balance || balance <= 0) return;
+    // Slowly increment by tiny random amounts to simulate live trading
+    const interval = setInterval(() => {
+      setDisplayed(prev => {
+        const micro = (Math.random() * 0.003 * (plan?.profit || 0.1) * balance);
+        return prev + micro;
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [balance, plan]);
+  return (
+    <span className="tabular-nums">
+      ${displayed.toFixed(2)}
+    </span>
+  );
+}
+
+// ── 2. Cycle Complete Celebration ─────────────────────────────────────────────
+function CycleCelebration({ profit, onClose }) {
+  const [show, setShow] = useState(true);
+  const particles = Array.from({length: 18}, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    delay: Math.random() * 0.8,
+    color: ["#F0B90B","#0ECB81","#F6465D","#60A5FA","#A78BFA","#FB923C"][i % 6],
+    size: 6 + Math.random() * 6,
+  }));
+  if (!show) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setShow(false); onClose?.(); }} />
+      {/* Confetti */}
+      {particles.map(p => (
+        <div key={p.id} className="absolute pointer-events-none"
+          style={{
+            left: `${p.x}%`, top: "-10px",
+            width: p.size, height: p.size,
+            borderRadius: Math.random() > 0.5 ? "50%" : "2px",
+            background: p.color,
+            animation: `fall ${1.5 + Math.random()}s ${p.delay}s ease-in forwards`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      `}</style>
+      <div className="relative bg-[#0F1318] border border-amber-500/30 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl shadow-amber-500/10"
+        style={{animation: "popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards"}}>
+        <div className="text-5xl mb-4">🎉</div>
+        <h2 className="text-white text-2xl font-black mb-2">Cycle Complete!</h2>
+        <p className="text-gray-400 text-sm mb-6">Your 96-hour trading cycle has ended. Your profit is ready to withdraw!</p>
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 mb-6">
+          <p className="text-gray-500 text-xs mb-1">Estimated Profit</p>
+          <p className="text-emerald-400 text-3xl font-black">+${profit.toFixed(2)}</p>
+        </div>
+        <button onClick={() => { setShow(false); onClose?.(); }}
+          className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-orange-500 text-black font-black rounded-xl hover:opacity-90 transition-all active:scale-95">
+          Withdraw Now 🚀
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── 3. Milestone Badges ────────────────────────────────────────────────────────
+function MilestoneBadges({ deposits, totalDeposit }) {
+  const approved = (deposits || []).filter(d => d.status === "APPROVED");
+  const badges = [
+    { id:"first",    label:"First Deposit",   emoji:"🌟", unlocked: approved.length >= 1,  color:"from-amber-400 to-yellow-500" },
+    { id:"third",    label:"3rd Deposit",      emoji:"🔥", unlocked: approved.length >= 3,  color:"from-orange-400 to-red-500"   },
+    { id:"fifth",    label:"5th Deposit",      emoji:"💪", unlocked: approved.length >= 5,  color:"from-pink-400 to-rose-500"    },
+    { id:"hun",      label:"$100 Invested",    emoji:"💯", unlocked: totalDeposit >= 100,   color:"from-blue-400 to-blue-600"    },
+    { id:"fivehun",  label:"$500 Milestone",   emoji:"🏆", unlocked: totalDeposit >= 500,   color:"from-violet-400 to-purple-600"},
+    { id:"k",        label:"$1K Club",         emoji:"👑", unlocked: totalDeposit >= 1000,  color:"from-amber-400 to-yellow-500" },
+  ];
+  const unlocked = badges.filter(b => b.unlocked);
+  const locked = badges.filter(b => !b.unlocked);
+  if (unlocked.length === 0 && locked.length === 0) return null;
+  return (
+    <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
+      <p className="text-white text-sm font-semibold mb-4">Your Badges</p>
+      <div className="flex flex-wrap gap-2">
+        {unlocked.map(b => (
+          <div key={b.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r ${b.color} shadow-lg`}>
+            <span className="text-base">{b.emoji}</span>
+            <span className="text-white text-xs font-bold">{b.label}</span>
+          </div>
+        ))}
+        {locked.slice(0, 3).map(b => (
+          <div key={b.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] opacity-40">
+            <span className="text-base grayscale">🔒</span>
+            <span className="text-gray-600 text-xs">{b.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── 5. Profit History Chart ────────────────────────────────────────────────────
+function ProfitChart({ deposits }) {
+  const approved = (deposits || [])
+    .filter(d => d.status === "APPROVED")
+    .sort((a, b) => new Date(a.approvedAt || 0).getTime() - new Date(b.approvedAt || 0).getTime())
+    .slice(-8); // last 8
+  if (approved.length === 0) return null;
+  const bars = approved.map(d => {
+    const plan = getActivePlan([d]);
+    return {
+      profit: (d.amount || 0) * plan.profit,
+      deposit: d.amount || 0,
+      label: d.approvedAt
+        ? new Date(d.approvedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        : "—",
+      plan: plan.label,
+      color: plan.color,
+    };
+  });
+  const maxProfit = Math.max(...bars.map(b => b.profit), 1);
+  return (
+    <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
+      <div className="flex items-center justify-between mb-5">
+        <p className="text-white text-sm font-semibold">Profit History</p>
+        <span className="text-gray-600 text-xs">{bars.length} cycle{bars.length !== 1 ? "s" : ""}</span>
+      </div>
+      <div className="flex items-end gap-2 h-32">
+        {bars.map((b, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
+            <div className="relative w-full flex flex-col justify-end" style={{height:"96px"}}>
+              {/* Tooltip */}
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1A1F28] border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-10">
+                +${b.profit.toFixed(2)}
+              </div>
+              <div
+                className={`w-full rounded-t-lg bg-gradient-to-t ${b.color} transition-all duration-700 relative overflow-hidden`}
+                style={{ height: `${Math.max((b.profit / maxProfit) * 90, 6)}px` }}
+              >
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+            <span className="text-gray-600 text-[9px]">{b.label}</span>
+            <span className="text-emerald-400 text-[9px] font-bold">+${b.profit.toFixed(0)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 pt-4 border-t border-white/[0.05] flex items-center justify-between">
+        <span className="text-gray-600 text-xs">Total Profit Earned</span>
+        <span className="text-emerald-400 font-bold text-sm">
+          +${bars.reduce((s, b) => s + b.profit, 0).toFixed(2)}
+        </span>
+      </div>
+    </div>
+  );
 }
 
 function BalanceUpdatedModal({ oldBalance, newBalance, onClose }) {
@@ -440,6 +605,8 @@ function MainContent({
   deposits,
   withdrawals,
   profilePct,
+  showCelebration,
+  setShowCelebration,
 }) {
   const STATS = [
     {
@@ -506,6 +673,18 @@ function MainContent({
 
   return (
     <div>
+      {/* Cycle Complete Celebration */}
+      {showCelebration && (
+        <CycleCelebration
+          profit={(() => {
+            const plan = getActivePlan(deposits);
+            const approved = deposits.filter(d => d.status === "APPROVED")
+              .sort((a,b) => new Date(b.approvedAt||0).getTime() - new Date(a.approvedAt||0).getTime());
+            return approved.length ? (approved[0].amount || 0) * plan.profit : 0;
+          })()}
+          onClose={() => setShowCelebration(false)}
+        />
+      )}
       {saveSuccess && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl px-5 py-3.5 shadow-xl">
           <svg
@@ -590,7 +769,9 @@ function MainContent({
                 </div>
                 <p className="text-gray-500 text-xs mb-0.5">{s.label}</p>
                 <p className="text-white text-lg font-bold tabular-nums">
-                  {s.value}
+                  {s.label === "Balance"
+                    ? <LiveTicker balance={userData?.balance || 0} plan={getActivePlan(deposits)} />
+                    : s.value}
                 </p>
                 <p className="text-gray-600 text-xs">{s.sub}</p>
               </div>
@@ -639,6 +820,37 @@ function MainContent({
                 />
               </svg>
             </Link>
+
+            {/* Feature 4 — Repeat Last Deposit */}
+            {(() => {
+              const lastDep = deposits.find(d => d.status === "APPROVED");
+              if (!lastDep) return null;
+              const plan = getActivePlan([lastDep]);
+              return (
+                <Link
+                  href={`/deposit?amount=${lastDep.amount}`}
+                  className="group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07] hover:border-amber-500/30 hover:bg-amber-500/5 transition-all relative overflow-hidden"
+                >
+                  <div className="absolute top-2 right-2">
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                      QUICK
+                    </span>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 group-hover:bg-amber-500/20 transition-colors">
+                    <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white font-semibold text-sm">Repeat Last Deposit</p>
+                    <p className="text-amber-400/70 text-xs font-medium">${lastDep.amount} · {plan.label} (+{plan.profitStr})</p>
+                  </div>
+                  <svg className="w-4 h-4 text-gray-700 group-hover:text-amber-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              );
+            })()}
             <button
               onClick={() => setActiveTab("profile")}
               className="group flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07] hover:border-violet-500/30 hover:bg-violet-500/5 transition-all text-left"
@@ -835,6 +1047,12 @@ function MainContent({
               </div>
             );
           })()}
+
+          {/* ── Milestone Badges ── */}
+          <MilestoneBadges deposits={deposits} totalDeposit={userData?.totalDeposit || 0} />
+
+          {/* ── Profit History Chart ── */}
+          <ProfitChart deposits={deposits} />
 
           {/* ── Profile Completion Bar ── */}
           {profilePct < 100 && (
@@ -1448,6 +1666,8 @@ export default function DashboardPage() {
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [profilePct, setProfilePct] = useState(0);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const celebrationShownRef = useRef(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -1463,6 +1683,22 @@ export default function DashboardPage() {
     });
     return () => unsubscribe();
   }, [router]);
+
+  // Check if cycle just completed — show celebration once
+  useEffect(() => {
+    if (!deposits.length || celebrationShownRef.current) return;
+    const cycleMs = 96 * 60 * 60 * 1000;
+    const approved = deposits.filter(d => d.status === "APPROVED")
+      .sort((a, b) => new Date(b.approvedAt || 0).getTime() - new Date(a.approvedAt || 0).getTime());
+    if (!approved.length) return;
+    const elapsed = Date.now() - new Date(approved[0].approvedAt || 0).getTime();
+    const sessionKey = `vantis_celebrated_${approved[0].id}`;
+    if (elapsed >= cycleMs && !sessionStorage.getItem(sessionKey)) {
+      celebrationShownRef.current = true;
+      sessionStorage.setItem(sessionKey, "1");
+      setTimeout(() => setShowCelebration(true), 800);
+    }
+  }, [deposits]);
 
   const fetchDeposits = async (userId) => {
     try {
@@ -1658,6 +1894,8 @@ export default function DashboardPage() {
     deposits,
     withdrawals,
     profilePct,
+    showCelebration,
+    setShowCelebration,
   };
 
   return (
