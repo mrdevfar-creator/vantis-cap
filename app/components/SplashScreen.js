@@ -2,6 +2,7 @@
 // app/components/SplashScreen.js
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 // ── Seeded pseudo-random ──────────────────────────────────────────────────────
 function seededRand(seed) {
@@ -198,12 +199,18 @@ export default function SplashScreen({ onFinish }) {
               )}
             </svg>
 
-            {/* Progress bar showing chart drawing */}
-            <div className="mt-3 h-0.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-amber-400/60 rounded-full transition-all duration-100"
-                style={{ width: `${chartPct * 100}%` }}
-              />
+            {/* Step dots — shows chart drawing progress without inline style */}
+            <div className="mt-3 flex gap-1.5 justify-center">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
+                    i < Math.ceil(chartPct * 8)
+                      ? "bg-amber-400/70"
+                      : "bg-white/10"
+                  }`}
+                />
+              ))}
             </div>
           </div>
 
@@ -254,13 +261,12 @@ export default function SplashScreen({ onFinish }) {
             {/* Outer glow ring */}
             <div className="absolute inset-0 rounded-[28px] bg-amber-400/10 blur-xl animate-pulse" />
             <div className="relative w-28 h-28 rounded-[28px] bg-amber-500/10 border border-amber-500/25 flex items-center justify-center">
-              <img
+              <Image
                 src="/vantis-trs-logo.png"
                 alt="Vantis Capital"
-                className="w-16 h-16 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
+                width={64}
+                height={64}
+                className="object-contain"
               />
             </div>
           </div>
