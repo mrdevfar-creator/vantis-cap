@@ -353,6 +353,21 @@ export default function AdminPage() {
               timeZone: "Asia/Dhaka",
             }),
           });
+
+          // Mark all included deposit trades as WITHDRAWN
+          if (withdrawal.depositIds && withdrawal.depositIds.length > 0) {
+            const { writeBatch } = await import("firebase/firestore");
+            const batch = writeBatch(db);
+            withdrawal.depositIds.forEach((depId) => {
+              batch.update(doc(db, "deposits", depId), {
+                tradeStatus: "WITHDRAWN",
+                withdrawnAt: new Date().toLocaleString("en-BD", {
+                  timeZone: "Asia/Dhaka",
+                }),
+              });
+            });
+            await batch.commit();
+          }
         }
         await addNotification(
           withdrawal.userId,
