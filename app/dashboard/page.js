@@ -15,23 +15,87 @@ const ADMIN_EMAIL = "khaialamu@gmail.com";
 // $50-99 → Starter 10% | $100-149 → Inner 13% | $150-199 → Smart 15%
 // $200-249 → Grower 17% | $250-299 → Ninja 18% | $300+ → Master 20%
 const PLANS = [
-  { key:"master",  min:300, max:Infinity, profit:0.20, label:"Master",  emoji:"👑", color:"from-amber-400 to-yellow-600",   border:"border-amber-400/30",   profitStr:"20%" },
-  { key:"ninja",   min:250, max:299,      profit:0.18, label:"Ninja",   emoji:"⚡", color:"from-pink-500 to-pink-700",      border:"border-pink-500/30",    profitStr:"18%" },
-  { key:"grower",  min:200, max:249,      profit:0.17, label:"Grower",  emoji:"📈", color:"from-orange-500 to-orange-700",  border:"border-orange-500/30",  profitStr:"17%" },
-  { key:"smart",   min:150, max:199,      profit:0.15, label:"Smart",   emoji:"🧠", color:"from-violet-500 to-violet-700",  border:"border-violet-500/30",  profitStr:"15%" },
-  { key:"inner",   min:100, max:149,      profit:0.13, label:"Inner",   emoji:"💎", color:"from-emerald-500 to-emerald-700",border:"border-emerald-500/30", profitStr:"13%" },
-  { key:"starter", min:50,  max:99,       profit:0.10, label:"Starter", emoji:"🌱", color:"from-blue-500 to-blue-700",      border:"border-blue-500/30",    profitStr:"10%" },
+  {
+    key: "master",
+    min: 300,
+    max: Infinity,
+    profit: 0.2,
+    label: "Master",
+    emoji: "👑",
+    color: "from-amber-400 to-yellow-600",
+    border: "border-amber-400/30",
+    profitStr: "20%",
+  },
+  {
+    key: "ninja",
+    min: 250,
+    max: 299,
+    profit: 0.18,
+    label: "Ninja",
+    emoji: "⚡",
+    color: "from-pink-500 to-pink-700",
+    border: "border-pink-500/30",
+    profitStr: "18%",
+  },
+  {
+    key: "grower",
+    min: 200,
+    max: 249,
+    profit: 0.17,
+    label: "Grower",
+    emoji: "📈",
+    color: "from-orange-500 to-orange-700",
+    border: "border-orange-500/30",
+    profitStr: "17%",
+  },
+  {
+    key: "smart",
+    min: 150,
+    max: 199,
+    profit: 0.15,
+    label: "Smart",
+    emoji: "🧠",
+    color: "from-violet-500 to-violet-700",
+    border: "border-violet-500/30",
+    profitStr: "15%",
+  },
+  {
+    key: "inner",
+    min: 100,
+    max: 149,
+    profit: 0.13,
+    label: "Inner",
+    emoji: "💎",
+    color: "from-emerald-500 to-emerald-700",
+    border: "border-emerald-500/30",
+    profitStr: "13%",
+  },
+  {
+    key: "starter",
+    min: 50,
+    max: 99,
+    profit: 0.1,
+    label: "Starter",
+    emoji: "🌱",
+    color: "from-blue-500 to-blue-700",
+    border: "border-blue-500/30",
+    profitStr: "10%",
+  },
 ];
 const DEFAULT_PLAN = PLANS[PLANS.length - 1]; // Starter as fallback
 
 function getActivePlan(deposits) {
   // Find latest approved deposit
   const approved = (deposits || [])
-    .filter(d => d.status === "APPROVED")
-    .sort((a, b) => new Date(b.approvedAt || 0).getTime() - new Date(a.approvedAt || 0).getTime());
+    .filter((d) => d.status === "APPROVED")
+    .sort(
+      (a, b) =>
+        new Date(b.approvedAt || 0).getTime() -
+        new Date(a.approvedAt || 0).getTime(),
+    );
   if (!approved.length) return DEFAULT_PLAN;
   const amount = approved[0].amount || 0;
-  return PLANS.find(p => amount >= p.min && amount <= p.max) || DEFAULT_PLAN;
+  return PLANS.find((p) => amount >= p.min && amount <= p.max) || DEFAULT_PLAN;
 }
 
 // ── 1. Live Portfolio Ticker ───────────────────────────────────────────────────
@@ -46,40 +110,48 @@ function LiveTicker({ balance, plan }) {
     if (!balance || balance <= 0) return;
     // Slowly increment by tiny random amounts to simulate live trading
     const interval = setInterval(() => {
-      setDisplayed(prev => {
-        const micro = (Math.random() * 0.003 * (plan?.profit || 0.1) * balance);
+      setDisplayed((prev) => {
+        const micro = Math.random() * 0.003 * (plan?.profit || 0.1) * balance;
         return prev + micro;
       });
     }, 2000);
     return () => clearInterval(interval);
   }, [balance, plan]);
-  return (
-    <span className="tabular-nums">
-      ${displayed.toFixed(2)}
-    </span>
-  );
+  return <span className="tabular-nums">${displayed.toFixed(2)}</span>;
 }
 
 // ── 2. Cycle Complete Celebration ─────────────────────────────────────────────
 function CycleCelebration({ profit, onClose }) {
   const [show, setShow] = useState(true);
-  const particles = Array.from({length: 18}, (_, i) => ({
+  const particles = Array.from({ length: 18 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     delay: Math.random() * 0.8,
-    color: ["#F0B90B","#0ECB81","#F6465D","#60A5FA","#A78BFA","#FB923C"][i % 6],
+    color: ["#F0B90B", "#0ECB81", "#F6465D", "#60A5FA", "#A78BFA", "#FB923C"][
+      i % 6
+    ],
     size: 6 + Math.random() * 6,
   }));
   if (!show) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setShow(false); onClose?.(); }} />
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={() => {
+          setShow(false);
+          onClose?.();
+        }}
+      />
       {/* Confetti */}
-      {particles.map(p => (
-        <div key={p.id} className="absolute pointer-events-none"
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute pointer-events-none"
           style={{
-            left: `${p.x}%`, top: "-10px",
-            width: p.size, height: p.size,
+            left: `${p.x}%`,
+            top: "-10px",
+            width: p.size,
+            height: p.size,
             borderRadius: Math.random() > 0.5 ? "50%" : "2px",
             background: p.color,
             animation: `fall ${1.5 + Math.random()}s ${p.delay}s ease-in forwards`,
@@ -90,17 +162,31 @@ function CycleCelebration({ profit, onClose }) {
         @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
         @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
       `}</style>
-      <div className="relative bg-[#0F1318] border border-amber-500/30 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl shadow-amber-500/10"
-        style={{animation: "popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards"}}>
+      <div
+        className="relative bg-[#0F1318] border border-amber-500/30 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl shadow-amber-500/10"
+        style={{
+          animation: "popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards",
+        }}
+      >
         <div className="text-5xl mb-4">🎉</div>
         <h2 className="text-white text-2xl font-black mb-2">Cycle Complete!</h2>
-        <p className="text-gray-400 text-sm mb-6">Your 96-hour trading cycle has ended. Your profit is ready to withdraw!</p>
+        <p className="text-gray-400 text-sm mb-6">
+          Your 96-hour trading cycle has ended. Your profit is ready to
+          withdraw!
+        </p>
         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 mb-6">
           <p className="text-gray-500 text-xs mb-1">Estimated Profit</p>
-          <p className="text-emerald-400 text-3xl font-black">+${profit.toFixed(2)}</p>
+          <p className="text-emerald-400 text-3xl font-black">
+            +${profit.toFixed(2)}
+          </p>
         </div>
-        <button onClick={() => { setShow(false); onClose?.(); }}
-          className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-orange-500 text-black font-black rounded-xl hover:opacity-90 transition-all active:scale-95">
+        <button
+          onClick={() => {
+            setShow(false);
+            onClose?.();
+          }}
+          className="w-full py-3.5 bg-gradient-to-r from-amber-400 to-orange-500 text-black font-black rounded-xl hover:opacity-90 transition-all active:scale-95"
+        >
           Withdraw Now 🚀
         </button>
       </div>
@@ -110,30 +196,72 @@ function CycleCelebration({ profit, onClose }) {
 
 // ── 3. Milestone Badges ────────────────────────────────────────────────────────
 function MilestoneBadges({ deposits, totalDeposit }) {
-  const approved = (deposits || []).filter(d => d.status === "APPROVED");
+  const approved = (deposits || []).filter((d) => d.status === "APPROVED");
   const badges = [
-    { id:"first",    label:"First Deposit",   emoji:"🌟", unlocked: approved.length >= 1,  color:"from-amber-400 to-yellow-500" },
-    { id:"third",    label:"3rd Deposit",      emoji:"🔥", unlocked: approved.length >= 3,  color:"from-orange-400 to-red-500"   },
-    { id:"fifth",    label:"5th Deposit",      emoji:"💪", unlocked: approved.length >= 5,  color:"from-pink-400 to-rose-500"    },
-    { id:"hun",      label:"$100 Invested",    emoji:"💯", unlocked: totalDeposit >= 100,   color:"from-blue-400 to-blue-600"    },
-    { id:"fivehun",  label:"$500 Milestone",   emoji:"🏆", unlocked: totalDeposit >= 500,   color:"from-violet-400 to-purple-600"},
-    { id:"k",        label:"$1K Club",         emoji:"👑", unlocked: totalDeposit >= 1000,  color:"from-amber-400 to-yellow-500" },
+    {
+      id: "first",
+      label: "First Deposit",
+      emoji: "🌟",
+      unlocked: approved.length >= 1,
+      color: "from-amber-400 to-yellow-500",
+    },
+    {
+      id: "third",
+      label: "3rd Deposit",
+      emoji: "🔥",
+      unlocked: approved.length >= 3,
+      color: "from-orange-400 to-red-500",
+    },
+    {
+      id: "fifth",
+      label: "5th Deposit",
+      emoji: "💪",
+      unlocked: approved.length >= 5,
+      color: "from-pink-400 to-rose-500",
+    },
+    {
+      id: "hun",
+      label: "$100 Invested",
+      emoji: "💯",
+      unlocked: totalDeposit >= 100,
+      color: "from-blue-400 to-blue-600",
+    },
+    {
+      id: "fivehun",
+      label: "$500 Milestone",
+      emoji: "🏆",
+      unlocked: totalDeposit >= 500,
+      color: "from-violet-400 to-purple-600",
+    },
+    {
+      id: "k",
+      label: "$1K Club",
+      emoji: "👑",
+      unlocked: totalDeposit >= 1000,
+      color: "from-amber-400 to-yellow-500",
+    },
   ];
-  const unlocked = badges.filter(b => b.unlocked);
-  const locked = badges.filter(b => !b.unlocked);
+  const unlocked = badges.filter((b) => b.unlocked);
+  const locked = badges.filter((b) => !b.unlocked);
   if (unlocked.length === 0 && locked.length === 0) return null;
   return (
     <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
       <p className="text-white text-sm font-semibold mb-4">Your Badges</p>
       <div className="flex flex-wrap gap-2">
-        {unlocked.map(b => (
-          <div key={b.id} className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r ${b.color} shadow-lg`}>
+        {unlocked.map((b) => (
+          <div
+            key={b.id}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r ${b.color} shadow-lg`}
+          >
             <span className="text-base">{b.emoji}</span>
             <span className="text-white text-xs font-bold">{b.label}</span>
           </div>
         ))}
-        {locked.slice(0, 3).map(b => (
-          <div key={b.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] opacity-40">
+        {locked.slice(0, 3).map((b) => (
+          <div
+            key={b.id}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] opacity-40"
+          >
             <span className="text-base grayscale">🔒</span>
             <span className="text-gray-600 text-xs">{b.label}</span>
           </div>
@@ -146,46 +274,65 @@ function MilestoneBadges({ deposits, totalDeposit }) {
 // ── 5. Profit History Chart ────────────────────────────────────────────────────
 function ProfitChart({ deposits }) {
   const approved = (deposits || [])
-    .filter(d => d.status === "APPROVED")
-    .sort((a, b) => new Date(a.approvedAt || 0).getTime() - new Date(b.approvedAt || 0).getTime())
+    .filter((d) => d.status === "APPROVED")
+    .sort(
+      (a, b) =>
+        new Date(a.approvedAt || 0).getTime() -
+        new Date(b.approvedAt || 0).getTime(),
+    )
     .slice(-8); // last 8
   if (approved.length === 0) return null;
-  const bars = approved.map(d => {
+  const bars = approved.map((d) => {
     const plan = getActivePlan([d]);
     return {
       profit: (d.amount || 0) * plan.profit,
       deposit: d.amount || 0,
       label: d.approvedAt
-        ? new Date(d.approvedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+        ? new Date(d.approvedAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })
         : "—",
       plan: plan.label,
       color: plan.color,
     };
   });
-  const maxProfit = Math.max(...bars.map(b => b.profit), 1);
+  const maxProfit = Math.max(...bars.map((b) => b.profit), 1);
   return (
     <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
       <div className="flex items-center justify-between mb-5">
         <p className="text-white text-sm font-semibold">Profit History</p>
-        <span className="text-gray-600 text-xs">{bars.length} cycle{bars.length !== 1 ? "s" : ""}</span>
+        <span className="text-gray-600 text-xs">
+          {bars.length} cycle{bars.length !== 1 ? "s" : ""}
+        </span>
       </div>
       <div className="flex items-end gap-2 h-32">
         {bars.map((b, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-            <div className="relative w-full flex flex-col justify-end" style={{height:"96px"}}>
+          <div
+            key={i}
+            className="flex-1 flex flex-col items-center gap-1 group"
+          >
+            <div
+              className="relative w-full flex flex-col justify-end"
+              style={{ height: "96px" }}
+            >
               {/* Tooltip */}
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1A1F28] border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-10">
                 +${b.profit.toFixed(2)}
               </div>
               <div
                 className={`w-full rounded-t-lg bg-gradient-to-t ${b.color} transition-all duration-700 relative overflow-hidden`}
-                style={{ height: `${Math.max((b.profit / maxProfit) * 90, 6)}px` }}
+                style={{
+                  height: `${Math.max((b.profit / maxProfit) * 90, 6)}px`,
+                }}
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </div>
             <span className="text-gray-600 text-[9px]">{b.label}</span>
-            <span className="text-emerald-400 text-[9px] font-bold">+${b.profit.toFixed(0)}</span>
+            <span className="text-emerald-400 text-[9px] font-bold">
+              +${b.profit.toFixed(0)}
+            </span>
           </div>
         ))}
       </div>
@@ -205,42 +352,85 @@ function ProfitChart({ deposits }) {
 
 // ── 1. Live Activity Feed ─────────────────────────────────────────────────────
 const ACTIVITY_NAMES = [
-  ["A***n","BD"],["S***h","US"],["R***l","UK"],["M***a","AE"],["F***d","CA"],
-  ["T***r","AU"],["N***i","SG"],["K***m","MY"],["J***e","PH"],["O***s","NG"],
-  ["P***k","IN"],["H***n","DE"],["Y***f","FR"],["I***a","TR"],["B***o","ZA"],
-  ["C***s","BR"],["D***a","ID"],["E***l","PK"],["G***i","EG"],["L***n","MX"],
+  ["A***n", "BD"],
+  ["S***h", "US"],
+  ["R***l", "UK"],
+  ["M***a", "AE"],
+  ["F***d", "CA"],
+  ["T***r", "AU"],
+  ["N***i", "SG"],
+  ["K***m", "MY"],
+  ["J***e", "PH"],
+  ["O***s", "NG"],
+  ["P***k", "IN"],
+  ["H***n", "DE"],
+  ["Y***f", "FR"],
+  ["I***a", "TR"],
+  ["B***o", "ZA"],
+  ["C***s", "BR"],
+  ["D***a", "ID"],
+  ["E***l", "PK"],
+  ["G***i", "EG"],
+  ["L***n", "MX"],
 ];
 const ACTIVITY_TYPES = [
-  (n,c,a) => ({ msg:`${n} from ${c} just deposited $${a}`, icon:"💰", color:"text-emerald-400" }),
-  (n,c,a) => ({ msg:`${n} from ${c} earned $${(a*0.15).toFixed(0)} profit`, icon:"📈", color:"text-amber-400" }),
-  (n,c,a) => ({ msg:`${n} from ${c} withdrew $${a}`, icon:"🏦", color:"text-blue-400" }),
-  (n,c,a) => ({ msg:`${n} from ${c} joined Vantis Capital`, icon:"🌟", color:"text-violet-400" }),
-  (n,c,a) => ({ msg:`${n} from ${c} upgraded to ${["Inner","Smart","Grower","Ninja","Master"][Math.floor(a/5)%5]} plan`, icon:"⬆️", color:"text-pink-400" }),
+  (n, c, a) => ({
+    msg: `${n} from ${c} just deposited $${a}`,
+    icon: "💰",
+    color: "text-emerald-400",
+  }),
+  (n, c, a) => ({
+    msg: `${n} from ${c} earned $${(a * 0.15).toFixed(0)} profit`,
+    icon: "📈",
+    color: "text-amber-400",
+  }),
+  (n, c, a) => ({
+    msg: `${n} from ${c} withdrew $${a}`,
+    icon: "🏦",
+    color: "text-blue-400",
+  }),
+  (n, c, a) => ({
+    msg: `${n} from ${c} joined Vantis Capital`,
+    icon: "🌟",
+    color: "text-violet-400",
+  }),
+  (n, c, a) => ({
+    msg: `${n} from ${c} upgraded to ${["Inner", "Smart", "Grower", "Ninja", "Master"][Math.floor(a / 5) % 5]} plan`,
+    icon: "⬆️",
+    color: "text-pink-400",
+  }),
 ];
-const AMOUNTS = [50,75,100,120,150,175,200,250,300,350,400,500];
+const AMOUNTS = [50, 75, 100, 120, 150, 175, 200, 250, 300, 350, 400, 500];
 
 function LiveActivityFeed() {
   const [activities, setActivities] = useState(() => {
     // Seed initial 4 items
-    return Array.from({length:4}, (_,i) => {
-      const [name,country] = ACTIVITY_NAMES[(i*7)%ACTIVITY_NAMES.length];
-      const amt = AMOUNTS[(i*3)%AMOUNTS.length];
-      const type = ACTIVITY_TYPES[(i*2)%ACTIVITY_TYPES.length];
-      return { id:i, ...type(name,country,amt), age: (i+1)*18 };
+    return Array.from({ length: 4 }, (_, i) => {
+      const [name, country] = ACTIVITY_NAMES[(i * 7) % ACTIVITY_NAMES.length];
+      const amt = AMOUNTS[(i * 3) % AMOUNTS.length];
+      const type = ACTIVITY_TYPES[(i * 2) % ACTIVITY_TYPES.length];
+      return { id: i, ...type(name, country, amt), age: (i + 1) * 18 };
     });
   });
   const seedRef = useRef(100);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const idx = seedRef.current % ACTIVITY_NAMES.length;
-      const [name,country] = ACTIVITY_NAMES[idx];
-      const amt = AMOUNTS[seedRef.current % AMOUNTS.length];
-      const typeIdx = seedRef.current % ACTIVITY_TYPES.length;
-      const activity = { id: Date.now(), ...ACTIVITY_TYPES[typeIdx](name,country,amt), age:0 };
-      seedRef.current++;
-      setActivities(prev => [activity, ...prev.slice(0,4)]);
-    }, 4500 + (seedRef.current % 3)*1500);
+    const interval = setInterval(
+      () => {
+        const idx = seedRef.current % ACTIVITY_NAMES.length;
+        const [name, country] = ACTIVITY_NAMES[idx];
+        const amt = AMOUNTS[seedRef.current % AMOUNTS.length];
+        const typeIdx = seedRef.current % ACTIVITY_TYPES.length;
+        const activity = {
+          id: Date.now(),
+          ...ACTIVITY_TYPES[typeIdx](name, country, amt),
+          age: 0,
+        };
+        seedRef.current++;
+        setActivities((prev) => [activity, ...prev.slice(0, 4)]);
+      },
+      4500 + (seedRef.current % 3) * 1500,
+    );
     return () => clearInterval(interval);
   }, []);
 
@@ -255,13 +445,19 @@ function LiveActivityFeed() {
       </div>
       <div className="divide-y divide-white/[0.03]">
         {activities.map((a, i) => (
-          <div key={a.id}
+          <div
+            key={a.id}
             className="flex items-center gap-3 px-5 py-3 transition-all duration-700"
-            style={{opacity: 1 - i*0.18, transform: i===0 ? "translateY(0)" : "none"}}
+            style={{
+              opacity: 1 - i * 0.18,
+              transform: i === 0 ? "translateY(0)" : "none",
+            }}
           >
             <span className="text-base shrink-0">{a.icon}</span>
             <p className={`text-xs flex-1 ${a.color}`}>{a.msg}</p>
-            <span className="text-gray-700 text-[10px] shrink-0">{i===0?"just now":`${(i)*Math.ceil(4.5)}m ago`}</span>
+            <span className="text-gray-700 text-[10px] shrink-0">
+              {i === 0 ? "just now" : `${i * Math.ceil(4.5)}m ago`}
+            </span>
           </div>
         ))}
       </div>
@@ -273,16 +469,20 @@ function LiveActivityFeed() {
 function LiveInvestorCounter() {
   const BASE = 120000;
   // Deterministic seed: use day-of-year so it grows day by day
-  const dayOffset = Math.floor((Date.now() - new Date("2020-01-01").getTime()) / 86400000);
-  const [count, setCount] = useState(BASE + dayOffset * 3 + Math.floor(Math.random()*20));
+  const dayOffset = Math.floor(
+    (Date.now() - new Date("2020-01-01").getTime()) / 86400000,
+  );
+  const [count, setCount] = useState(
+    BASE + dayOffset * 3 + Math.floor(Math.random() * 20),
+  );
 
   useEffect(() => {
     // +1 every 8–16 seconds — believable organic growth
     const tick = () => {
-      setCount(c => c + 1);
-      setTimeout(tick, 8000 + Math.random()*8000);
+      setCount((c) => c + 1);
+      setTimeout(tick, 8000 + Math.random() * 8000);
     };
-    const t = setTimeout(tick, 8000 + Math.random()*8000);
+    const t = setTimeout(tick, 8000 + Math.random() * 8000);
     return () => clearTimeout(t);
   }, []);
 
@@ -295,7 +495,9 @@ function LiveInvestorCounter() {
       </div>
       <div className="flex-1">
         <p className="text-gray-500 text-xs">Active Investors Worldwide</p>
-        <p className="text-violet-400 text-lg font-black tabular-nums">{fmt(count)}</p>
+        <p className="text-violet-400 text-lg font-black tabular-nums">
+          {fmt(count)}
+        </p>
       </div>
       <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -311,10 +513,11 @@ function DailyProfitPulse() {
   // At midnight resets, grows through the day based on time
   const getDailyProfit = () => {
     const now = new Date();
-    const secondsInDay = now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
+    const secondsInDay =
+      now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     const dayFraction = secondsInDay / 86400;
     // Base $28,000 + intraday growth up to ~$34,000 with slight randomness seeded by date
-    const seed = now.getDate() + now.getMonth()*31;
+    const seed = now.getDate() + now.getMonth() * 31;
     const base = 28000 + (seed % 12) * 400;
     return base + dayFraction * (5800 + (seed % 800));
   };
@@ -328,7 +531,12 @@ function DailyProfitPulse() {
     return () => clearInterval(interval);
   }, []);
 
-  const fmt = (n) => "$" + n.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmt = (n) =>
+    "$" +
+    n.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   return (
     <div className="relative overflow-hidden flex items-center gap-3 px-4 py-3 bg-amber-500/8 border border-amber-500/15 rounded-2xl">
@@ -338,11 +546,16 @@ function DailyProfitPulse() {
       </div>
       <div className="flex-1">
         <p className="text-gray-500 text-xs">Platform Profit Today</p>
-        <p className="text-amber-400 text-lg font-black tabular-nums transition-all duration-1000">{fmt(profit)}</p>
+        <p className="text-amber-400 text-lg font-black tabular-nums transition-all duration-1000">
+          {fmt(profit)}
+        </p>
       </div>
       <div className="text-right">
         <span className="text-[10px] text-amber-400/70">
-          {new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})}
+          {new Date().toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
         </span>
         <div className="flex items-center gap-1 justify-end mt-0.5">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
@@ -357,20 +570,48 @@ function DailyProfitPulse() {
 function StreakTracker({ streak }) {
   if (!streak || streak < 1) return null;
   const fire = streak >= 7 ? "🔥" : streak >= 3 ? "⚡" : "✨";
-  const label = streak >= 30 ? "Legendary" : streak >= 14 ? "Elite" : streak >= 7 ? "Hot Streak" : streak >= 3 ? "On Fire" : "Getting Started";
-  const color = streak >= 7 ? "from-orange-500/10 to-red-500/5 border-orange-500/20" : streak >= 3 ? "from-amber-500/10 to-orange-500/5 border-amber-500/20" : "from-blue-500/10 to-violet-500/5 border-blue-500/20";
-  const textColor = streak >= 7 ? "text-orange-400" : streak >= 3 ? "text-amber-400" : "text-blue-400";
+  const label =
+    streak >= 30
+      ? "Legendary"
+      : streak >= 14
+        ? "Elite"
+        : streak >= 7
+          ? "Hot Streak"
+          : streak >= 3
+            ? "On Fire"
+            : "Getting Started";
+  const color =
+    streak >= 7
+      ? "from-orange-500/10 to-red-500/5 border-orange-500/20"
+      : streak >= 3
+        ? "from-amber-500/10 to-orange-500/5 border-amber-500/20"
+        : "from-blue-500/10 to-violet-500/5 border-blue-500/20";
+  const textColor =
+    streak >= 7
+      ? "text-orange-400"
+      : streak >= 3
+        ? "text-amber-400"
+        : "text-blue-400";
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 bg-gradient-to-r ${color} border rounded-2xl`}>
+    <div
+      className={`flex items-center gap-3 px-4 py-3 bg-gradient-to-r ${color} border rounded-2xl`}
+    >
       <span className="text-2xl">{fire}</span>
       <div className="flex-1">
-        <p className={`${textColor} text-sm font-black`}>{streak}-Day Streak · {label}</p>
-        <p className="text-gray-600 text-xs">Keep logging in daily to maintain your streak!</p>
+        <p className={`${textColor} text-sm font-black`}>
+          {streak}-Day Streak · {label}
+        </p>
+        <p className="text-gray-600 text-xs">
+          Keep logging in daily to maintain your streak!
+        </p>
       </div>
       <div className="flex gap-1">
-        {Array.from({length: Math.min(streak, 7)}, (_,i) => (
-          <div key={i} className={`w-2.5 h-2.5 rounded-full ${i < streak ? (streak >= 7 ? "bg-orange-400" : streak >= 3 ? "bg-amber-400" : "bg-blue-400") : "bg-white/10"}`} />
+        {Array.from({ length: Math.min(streak, 7) }, (_, i) => (
+          <div
+            key={i}
+            className={`w-2.5 h-2.5 rounded-full ${i < streak ? (streak >= 7 ? "bg-orange-400" : streak >= 3 ? "bg-amber-400" : "bg-blue-400") : "bg-white/10"}`}
+          />
         ))}
       </div>
     </div>
@@ -386,13 +627,13 @@ function BonusCycleCountdown() {
     const daysUntil = day === 0 ? 7 : 7 - day;
     const next = new Date(now);
     next.setUTCDate(now.getUTCDate() + daysUntil);
-    next.setUTCHours(0,0,0,0);
+    next.setUTCHours(0, 0, 0, 0);
     return next.getTime();
   };
 
   const [msLeft, setMsLeft] = useState(() => getNextSunday() - Date.now());
   // Bonus % rotates weekly — seeded by week number so consistent
-  const weekNum = Math.floor(Date.now() / (7*24*3600*1000));
+  const weekNum = Math.floor(Date.now() / (7 * 24 * 3600 * 1000));
   const bonusPcts = [22, 21, 23, 22, 24, 21, 23];
   const bonusPct = bonusPcts[weekNum % bonusPcts.length];
 
@@ -408,7 +649,10 @@ function BonusCycleCountdown() {
   const h = Math.floor((s % 86400) / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
-  const fmt = d > 0 ? `${d}d ${h}h ${String(m).padStart(2,"0")}m` : `${h}h ${String(m).padStart(2,"0")}m ${String(sec).padStart(2,"0")}s`;
+  const fmt =
+    d > 0
+      ? `${d}d ${h}h ${String(m).padStart(2, "0")}m`
+      : `${h}h ${String(m).padStart(2, "0")}m ${String(sec).padStart(2, "0")}s`;
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-r from-pink-500/10 via-rose-500/5 to-transparent border border-pink-500/20 rounded-2xl p-4">
@@ -421,8 +665,12 @@ function BonusCycleCountdown() {
             <span className="text-lg">⏰</span>
           </div>
           <div>
-            <p className="text-pink-400 text-xs font-bold uppercase tracking-wider">Limited Bonus Cycle</p>
-            <p className="text-white text-sm font-black">+{bonusPct}% Return This Week</p>
+            <p className="text-pink-400 text-xs font-bold uppercase tracking-wider">
+              Limited Bonus Cycle
+            </p>
+            <p className="text-white text-sm font-black">
+              +{bonusPct}% Return This Week
+            </p>
           </div>
         </div>
         <div className="text-right">
@@ -436,31 +684,90 @@ function BonusCycleCountdown() {
 
 // ── 6. VIP Tier Progress ──────────────────────────────────────────────────────
 const VIP_TIERS = [
-  { name:"Bronze",  min:0,    max:499,   emoji:"🥉", color:"from-amber-700 to-yellow-800",   text:"text-amber-600",  border:"border-amber-700/30",  bg:"bg-amber-900/10" },
-  { name:"Silver",  min:500,  max:1499,  emoji:"🥈", color:"from-gray-400 to-slate-500",     text:"text-gray-300",   border:"border-gray-500/30",   bg:"bg-gray-500/8"   },
-  { name:"Gold",    min:1500, max:4999,  emoji:"🥇", color:"from-yellow-400 to-amber-500",   text:"text-yellow-400", border:"border-yellow-500/30", bg:"bg-yellow-500/8" },
-  { name:"Platinum",min:5000, max:14999, emoji:"💎", color:"from-cyan-400 to-blue-500",      text:"text-cyan-400",   border:"border-cyan-500/30",   bg:"bg-cyan-500/8"   },
-  { name:"Elite",   min:15000,max:Infinity,emoji:"👑",color:"from-amber-400 to-yellow-300",  text:"text-amber-300",  border:"border-amber-400/30",  bg:"bg-amber-400/8"  },
+  {
+    name: "Bronze",
+    min: 0,
+    max: 499,
+    emoji: "🥉",
+    color: "from-amber-700 to-yellow-800",
+    text: "text-amber-600",
+    border: "border-amber-700/30",
+    bg: "bg-amber-900/10",
+  },
+  {
+    name: "Silver",
+    min: 500,
+    max: 1499,
+    emoji: "🥈",
+    color: "from-gray-400 to-slate-500",
+    text: "text-gray-300",
+    border: "border-gray-500/30",
+    bg: "bg-gray-500/8",
+  },
+  {
+    name: "Gold",
+    min: 1500,
+    max: 4999,
+    emoji: "🥇",
+    color: "from-yellow-400 to-amber-500",
+    text: "text-yellow-400",
+    border: "border-yellow-500/30",
+    bg: "bg-yellow-500/8",
+  },
+  {
+    name: "Platinum",
+    min: 5000,
+    max: 14999,
+    emoji: "💎",
+    color: "from-cyan-400 to-blue-500",
+    text: "text-cyan-400",
+    border: "border-cyan-500/30",
+    bg: "bg-cyan-500/8",
+  },
+  {
+    name: "Elite",
+    min: 15000,
+    max: Infinity,
+    emoji: "👑",
+    color: "from-amber-400 to-yellow-300",
+    text: "text-amber-300",
+    border: "border-amber-400/30",
+    bg: "bg-amber-400/8",
+  },
 ];
 const VIP_PERKS = {
-  Bronze:  ["Priority support","Basic analytics"],
-  Silver:  ["Priority support","Advanced analytics","Early access"],
-  Gold:    ["VIP support","Full analytics","Early access","Bonus cycles"],
-  Platinum:["Dedicated manager","All features","Exclusive bonuses","Higher limits"],
-  Elite:   ["Personal advisor","All features","Maximum bonuses","Unlimited withdrawals"],
+  Bronze: ["Priority support", "Basic analytics"],
+  Silver: ["Priority support", "Advanced analytics", "Early access"],
+  Gold: ["VIP support", "Full analytics", "Early access", "Bonus cycles"],
+  Platinum: [
+    "Dedicated manager",
+    "All features",
+    "Exclusive bonuses",
+    "Higher limits",
+  ],
+  Elite: [
+    "Personal advisor",
+    "All features",
+    "Maximum bonuses",
+    "Unlimited withdrawals",
+  ],
 };
 
 function VIPTierProgress({ totalDeposit }) {
   const total = totalDeposit || 0;
-  const current = VIP_TIERS.findIndex(t => total >= t.min && total <= t.max);
+  const current = VIP_TIERS.findIndex((t) => total >= t.min && total <= t.max);
   const tier = VIP_TIERS[Math.max(current, 0)];
   const next = VIP_TIERS[current + 1];
-  const pct = next ? Math.min(((total - tier.min) / (next.min - tier.min)) * 100, 100) : 100;
+  const pct = next
+    ? Math.min(((total - tier.min) / (next.min - tier.min)) * 100, 100)
+    : 100;
   const toNext = next ? next.min - total : 0;
   const perks = VIP_PERKS[tier.name] || [];
 
   return (
-    <div className={`${tier.bg} border ${tier.border} rounded-2xl p-5 relative overflow-hidden`}>
+    <div
+      className={`${tier.bg} border ${tier.border} rounded-2xl p-5 relative overflow-hidden`}
+    >
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -inset-x-full top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_4s_linear_infinite]" />
       </div>
@@ -468,14 +775,22 @@ function VIPTierProgress({ totalDeposit }) {
         <div className="flex items-center gap-3">
           <span className="text-3xl">{tier.emoji}</span>
           <div>
-            <p className={`${tier.text} font-black text-lg`}>{tier.name} Member</p>
-            <p className="text-gray-500 text-xs">Total deposited: ${total.toLocaleString()}</p>
+            <p className={`${tier.text} font-black text-lg`}>
+              {tier.name} Member
+            </p>
+            <p className="text-gray-500 text-xs">
+              Total deposited: ${total.toLocaleString()}
+            </p>
           </div>
         </div>
         {next && (
           <div className="text-right">
-            <p className="text-gray-600 text-[10px]">Next: {next.name} {next.emoji}</p>
-            <p className={`${tier.text} text-xs font-bold`}>${toNext.toLocaleString()} away</p>
+            <p className="text-gray-600 text-[10px]">
+              Next: {next.name} {next.emoji}
+            </p>
+            <p className={`${tier.text} text-xs font-bold`}>
+              ${toNext.toLocaleString()} away
+            </p>
           </div>
         )}
       </div>
@@ -486,7 +801,7 @@ function VIPTierProgress({ totalDeposit }) {
           <div className="h-2 bg-white/[0.05] rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full bg-gradient-to-r ${tier.color} relative overflow-hidden transition-all duration-1000`}
-              style={{width:`${pct}%`}}
+              style={{ width: `${pct}%` }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-[shimmer_2s_linear_infinite]" />
             </div>
@@ -501,14 +816,19 @@ function VIPTierProgress({ totalDeposit }) {
       {!next && (
         <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-amber-400/10 border border-amber-400/20 rounded-xl">
           <span>👑</span>
-          <p className="text-amber-300 text-xs font-bold">You've reached the highest tier!</p>
+          <p className="text-amber-300 text-xs font-bold">
+            You have reached the highest tier!
+          </p>
         </div>
       )}
 
       {/* Perks */}
       <div className="flex flex-wrap gap-2">
-        {perks.map(p => (
-          <span key={p} className={`text-[10px] px-2.5 py-1 rounded-full ${tier.bg} border ${tier.border} ${tier.text} font-medium`}>
+        {perks.map((p) => (
+          <span
+            key={p}
+            className={`text-[10px] px-2.5 py-1 rounded-full ${tier.bg} border ${tier.border} ${tier.text} font-medium`}
+          >
             ✓ {p}
           </span>
         ))}
@@ -623,8 +943,8 @@ function WithdrawTab({ user, userData, deposits }) {
 
   // Build per-trade status from deposits
   const trades = (deposits || [])
-    .filter(d => d.status === "APPROVED" && d.tradeStatus !== "WITHDRAWN")
-    .map(d => {
+    .filter((d) => d.status === "APPROVED" && d.tradeStatus !== "WITHDRAWN")
+    .map((d) => {
       const approvedTime = d.approvedAt ? new Date(d.approvedAt).getTime() : 0;
       const elapsed = now - approvedTime;
       const ready = elapsed >= CYCLE_MS;
@@ -645,8 +965,8 @@ function WithdrawTab({ user, userData, deposits }) {
     })
     .sort((a, b) => b.approvedTime - a.approvedTime);
 
-  const readyTrades = trades.filter(t => t.ready);
-  const runningTrades = trades.filter(t => !t.ready);
+  const readyTrades = trades.filter((t) => t.ready);
+  const runningTrades = trades.filter((t) => !t.ready);
   const totalAvailable = readyTrades.reduce((s, t) => s + t.total, 0);
   const hasReady = readyTrades.length > 0;
 
@@ -656,23 +976,37 @@ function WithdrawTab({ user, userData, deposits }) {
     const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
     return h > 0
-      ? `${h}h ${String(m).padStart(2,"0")}m ${String(sec).padStart(2,"0")}s`
-      : `${m}m ${String(sec).padStart(2,"0")}s`;
+      ? `${h}h ${String(m).padStart(2, "0")}m ${String(sec).padStart(2, "0")}s`
+      : `${m}m ${String(sec).padStart(2, "0")}s`;
   };
 
   const handleSubmit = async () => {
     if (!hasReady) return;
     const requestedAmt = parseFloat(amount);
-    if (!requestedAmt || requestedAmt <= 0) { setError("Enter a valid amount"); return; }
-    if (requestedAmt > totalAvailable) { setError(`Maximum available is $${totalAvailable.toFixed(2)}`); return; }
-    if (!address.trim()) { setError("Enter a withdrawal address"); return; }
+    if (!requestedAmt || requestedAmt <= 0) {
+      setError("Enter a valid amount");
+      return;
+    }
+    if (requestedAmt > totalAvailable) {
+      setError(`Maximum available is $${totalAvailable.toFixed(2)}`);
+      return;
+    }
+    if (!address.trim()) {
+      setError("Enter a withdrawal address");
+      return;
+    }
     setSubmitting(true);
     setError("");
     try {
       const { collection, addDoc } = await import("firebase/firestore");
       const now_str = new Date().toLocaleString("en-US", {
-        timeZone: "Asia/Dhaka", hour: "2-digit", minute: "2-digit",
-        hour12: true, month: "numeric", day: "numeric", year: "2-digit",
+        timeZone: "Asia/Dhaka",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        month: "numeric",
+        day: "numeric",
+        year: "2-digit",
       });
       await addDoc(collection(db, "withdrawals"), {
         userId: user.uid,
@@ -681,7 +1015,7 @@ function WithdrawTab({ user, userData, deposits }) {
         amount: requestedAmt,
         address: address.trim(),
         status: "PENDING",
-        depositIds: readyTrades.map(t => t.id),
+        depositIds: readyTrades.map((t) => t.id),
         tradeCount: readyTrades.length,
         createdAt: new Date().toISOString(),
         requestedAt: now_str,
@@ -694,36 +1028,61 @@ function WithdrawTab({ user, userData, deposits }) {
     }
   };
 
-  if (submitted) return (
-    <div className="max-w-md mx-auto mt-8 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-5">
-        <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+  if (submitted)
+    return (
+      <div className="max-w-md mx-auto mt-8 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-5">
+          <svg
+            className="w-8 h-8 text-emerald-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.8}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <h3 className="text-white text-xl font-bold mb-2">Request Submitted</h3>
+        <p className="text-gray-500 text-sm mb-2">
+          Your withdrawal of{" "}
+          <span className="text-white font-bold">
+            ${parseFloat(amount || totalAvailable).toFixed(2)}
+          </span>{" "}
+          has been sent to admin.
+        </p>
+        <p className="text-gray-600 text-xs mb-6">
+          {readyTrades.length} trade{readyTrades.length > 1 ? "s" : ""} included
+        </p>
+        <button
+          onClick={() => setSubmitted(false)}
+          className="px-6 py-2.5 bg-white/5 border border-white/10 text-gray-300 text-sm rounded-xl hover:bg-white/10 transition-all"
+        >
+          Back
+        </button>
       </div>
-      <h3 className="text-white text-xl font-bold mb-2">Request Submitted</h3>
-      <p className="text-gray-500 text-sm mb-2">Your withdrawal of <span className="text-white font-bold">${parseFloat(amount || totalAvailable).toFixed(2)}</span> has been sent to admin.</p>
-      <p className="text-gray-600 text-xs mb-6">{readyTrades.length} trade{readyTrades.length > 1 ? "s" : ""} included</p>
-      <button onClick={() => setSubmitted(false)} className="px-6 py-2.5 bg-white/5 border border-white/10 text-gray-300 text-sm rounded-xl hover:bg-white/10 transition-all">
-        Back
-      </button>
-    </div>
-  );
+    );
 
   return (
     <div className="max-w-lg space-y-4">
-
       {/* Available to Withdraw */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 p-6">
         <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-        <p className="text-emerald-400/70 text-xs font-semibold uppercase tracking-widest mb-1">Available to Withdraw</p>
-        <p className="text-white text-3xl font-black mb-1">${totalAvailable.toFixed(2)}</p>
+        <p className="text-emerald-400/70 text-xs font-semibold uppercase tracking-widest mb-1">
+          Available to Withdraw
+        </p>
+        <p className="text-white text-3xl font-black mb-1">
+          ${totalAvailable.toFixed(2)}
+        </p>
         <p className="text-gray-500 text-sm">
           {hasReady
             ? `${readyTrades.length} trade${readyTrades.length > 1 ? "s" : ""} completed · includes deposit + profit`
             : runningTrades.length > 0
-            ? "Trades still running — check countdowns below"
-            : "No active trades yet"}
+              ? "Trades still running — check countdowns below"
+              : "No active trades yet"}
         </p>
       </div>
 
@@ -731,30 +1090,45 @@ function WithdrawTab({ user, userData, deposits }) {
       {runningTrades.length > 0 && (
         <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-white/[0.05]">
-            <p className="text-white text-sm font-semibold">🔄 Running Trades ({runningTrades.length})</p>
+            <p className="text-white text-sm font-semibold">
+              🔄 Running Trades ({runningTrades.length})
+            </p>
           </div>
           <div className="divide-y divide-white/[0.04]">
-            {runningTrades.map(t => (
+            {runningTrades.map((t) => (
               <div key={t.id} className="px-5 py-4">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r ${t.plan.color} text-white`}>
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r ${t.plan.color} text-white`}
+                    >
                       {t.plan.emoji} {t.plan.label}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-bold text-sm">${t.amount.toFixed(2)}</p>
-                    <p className="text-emerald-400 text-xs">+${t.profit.toFixed(2)} profit</p>
+                    <p className="text-white font-bold text-sm">
+                      ${t.amount.toFixed(2)}
+                    </p>
+                    <p className="text-emerald-400 text-xs">
+                      +${t.profit.toFixed(2)} profit
+                    </p>
                   </div>
                 </div>
                 <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden mb-1.5">
-                  <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 relative overflow-hidden transition-all duration-1000" style={{width:`${t.pct}%`}}>
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 relative overflow-hidden transition-all duration-1000"
+                    style={{ width: `${t.pct}%` }}
+                  >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_linear_infinite]" />
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 text-[10px]">{t.pct.toFixed(1)}% complete</span>
-                  <span className="text-amber-400 font-mono text-xs font-bold">{fmtTime(t.remaining)}</span>
+                  <span className="text-gray-600 text-[10px]">
+                    {t.pct.toFixed(1)}% complete
+                  </span>
+                  <span className="text-amber-400 font-mono text-xs font-bold">
+                    {fmtTime(t.remaining)}
+                  </span>
                 </div>
               </div>
             ))}
@@ -766,26 +1140,41 @@ function WithdrawTab({ user, userData, deposits }) {
       {readyTrades.length > 0 && (
         <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-emerald-500/10">
-            <p className="text-emerald-400 text-sm font-semibold">✅ Ready to Withdraw ({readyTrades.length})</p>
+            <p className="text-emerald-400 text-sm font-semibold">
+              ✅ Ready to Withdraw ({readyTrades.length})
+            </p>
           </div>
           <div className="divide-y divide-emerald-500/10">
-            {readyTrades.map(t => (
-              <div key={t.id} className="px-5 py-3.5 flex items-center justify-between">
+            {readyTrades.map((t) => (
+              <div
+                key={t.id}
+                className="px-5 py-3.5 flex items-center justify-between"
+              >
                 <div className="flex items-center gap-3">
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r ${t.plan.color} text-white`}>
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gradient-to-r ${t.plan.color} text-white`}
+                  >
                     {t.plan.emoji} {t.plan.label}
                   </span>
-                  <span className="text-gray-500 text-xs">${t.amount.toFixed(2)} deposit</span>
+                  <span className="text-gray-500 text-xs">
+                    ${t.amount.toFixed(2)} deposit
+                  </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-emerald-400 font-bold text-sm">${t.total.toFixed(2)}</p>
-                  <p className="text-emerald-600 text-[10px]">+${t.profit.toFixed(2)}</p>
+                  <p className="text-emerald-400 font-bold text-sm">
+                    ${t.total.toFixed(2)}
+                  </p>
+                  <p className="text-emerald-600 text-[10px]">
+                    +${t.profit.toFixed(2)}
+                  </p>
                 </div>
               </div>
             ))}
             <div className="px-5 py-3.5 flex items-center justify-between bg-emerald-500/5">
               <span className="text-emerald-400 text-sm font-bold">Total</span>
-              <span className="text-emerald-400 text-lg font-black">${totalAvailable.toFixed(2)}</span>
+              <span className="text-emerald-400 text-lg font-black">
+                ${totalAvailable.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
@@ -795,17 +1184,25 @@ function WithdrawTab({ user, userData, deposits }) {
       {hasReady && (
         <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 space-y-4">
           <p className="text-white font-semibold text-sm">Withdrawal Request</p>
-          {error && <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">{error}</p>}
+          {error && (
+            <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+              {error}
+            </p>
+          )}
 
           {/* Amount input */}
           <div>
-            <label className="text-gray-400 text-xs font-medium block mb-2">Amount (USD)</label>
+            <label className="text-gray-400 text-xs font-medium block mb-2">
+              Amount (USD)
+            </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">
+                $
+              </span>
               <input
                 type="number"
                 value={amount}
-                onChange={e => setAmount(e.target.value)}
+                onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
                 min="1"
                 step="0.01"
@@ -820,20 +1217,36 @@ function WithdrawTab({ user, userData, deposits }) {
               </button>
             </div>
             <div className="flex items-center justify-between mt-1.5">
-              <p className="text-gray-600 text-xs">Available: <span className="text-emerald-400 font-semibold">${totalAvailable.toFixed(2)}</span> from {readyTrades.length} trade{readyTrades.length > 1 ? "s" : ""}</p>
-              {amount && parseFloat(amount) > 0 && parseFloat(amount) <= totalAvailable && (
-                <p className="text-gray-600 text-xs">Remaining: <span className="text-gray-400">${(totalAvailable - parseFloat(amount)).toFixed(2)}</span></p>
-              )}
+              <p className="text-gray-600 text-xs">
+                Available:{" "}
+                <span className="text-emerald-400 font-semibold">
+                  ${totalAvailable.toFixed(2)}
+                </span>{" "}
+                from {readyTrades.length} trade
+                {readyTrades.length > 1 ? "s" : ""}
+              </p>
+              {amount &&
+                parseFloat(amount) > 0 &&
+                parseFloat(amount) <= totalAvailable && (
+                  <p className="text-gray-600 text-xs">
+                    Remaining:{" "}
+                    <span className="text-gray-400">
+                      ${(totalAvailable - parseFloat(amount)).toFixed(2)}
+                    </span>
+                  </p>
+                )}
             </div>
           </div>
 
           {/* Address input */}
           <div>
-            <label className="text-gray-400 text-xs font-medium block mb-2">Withdrawal Address (USDT TRC20)</label>
+            <label className="text-gray-400 text-xs font-medium block mb-2">
+              Withdrawal Address (USDT TRC20)
+            </label>
             <input
               type="text"
               value={address}
-              onChange={e => setAddress(e.target.value)}
+              onChange={(e) => setAddress(e.target.value)}
               placeholder="Your USDT TRC20 wallet address"
               className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-600 text-sm focus:outline-none focus:border-emerald-400/50 transition-colors font-mono text-xs"
             />
@@ -843,14 +1256,18 @@ function WithdrawTab({ user, userData, deposits }) {
             disabled={submitting || !amount || parseFloat(amount) <= 0}
             className="w-full py-3.5 bg-gradient-to-r from-emerald-400 to-teal-500 text-black text-sm font-black rounded-xl hover:opacity-90 disabled:opacity-50 transition-all active:scale-95"
           >
-            {submitting ? "Submitting..." : `Withdraw $${parseFloat(amount) > 0 ? parseFloat(amount).toFixed(2) : "0.00"}`}
+            {submitting
+              ? "Submitting..."
+              : `Withdraw $${parseFloat(amount) > 0 ? parseFloat(amount).toFixed(2) : "0.00"}`}
           </button>
         </div>
       )}
 
       {!hasReady && trades.length === 0 && (
         <div className="bg-gray-500/5 border border-gray-500/15 rounded-2xl p-6 text-center">
-          <p className="text-gray-500 text-sm">No active trades yet. Make a deposit to start trading.</p>
+          <p className="text-gray-500 text-sm">
+            No active trades yet. Make a deposit to start trading.
+          </p>
         </div>
       )}
     </div>
@@ -861,8 +1278,11 @@ function CycleCountdown({ initialMs }) {
   const [ms, setMs] = useState(initialMs);
   useEffect(() => {
     const interval = setInterval(() => {
-      setMs(prev => {
-        if (prev <= 1000) { clearInterval(interval); return 0; }
+      setMs((prev) => {
+        if (prev <= 1000) {
+          clearInterval(interval);
+          return 0;
+        }
         return prev - 1000;
       });
     }, 1000);
@@ -872,9 +1292,10 @@ function CycleCountdown({ initialMs }) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
-  const fmt = h > 0
-    ? `${h}h ${String(m).padStart(2,"0")}m ${String(sec).padStart(2,"0")}s`
-    : `${m}m ${String(sec).padStart(2,"0")}s`;
+  const fmt =
+    h > 0
+      ? `${h}h ${String(m).padStart(2, "0")}m ${String(sec).padStart(2, "0")}s`
+      : `${m}m ${String(sec).padStart(2, "0")}s`;
   return <span className="text-amber-400 font-mono font-bold">{fmt}</span>;
 }
 
@@ -968,9 +1389,16 @@ function MainContent({
         <CycleCelebration
           profit={(() => {
             const plan = getActivePlan(deposits);
-            const approved = deposits.filter(d => d.status === "APPROVED")
-              .sort((a,b) => new Date(b.approvedAt||0).getTime() - new Date(a.approvedAt||0).getTime());
-            return approved.length ? (approved[0].amount || 0) * plan.profit : 0;
+            const approved = deposits
+              .filter((d) => d.status === "APPROVED")
+              .sort(
+                (a, b) =>
+                  new Date(b.approvedAt || 0).getTime() -
+                  new Date(a.approvedAt || 0).getTime(),
+              );
+            return approved.length
+              ? (approved[0].amount || 0) * plan.profit
+              : 0;
           })()}
           onClose={() => setShowCelebration(false)}
         />
@@ -1009,30 +1437,48 @@ function MainContent({
             <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
             {/* Animated shimmer */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-              <div className="absolute -inset-x-full top-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent animate-[shimmer_3s_linear_infinite]" style={{animationDuration:"3s"}} />
+              <div
+                className="absolute -inset-x-full top-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent animate-[shimmer_3s_linear_infinite]"
+                style={{ animationDuration: "3s" }}
+              />
             </div>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-amber-400/70 text-xs font-semibold uppercase tracking-widest mb-1">
                   {(() => {
                     const h = new Date().getHours();
-                    return h < 12 ? "☀️ Good Morning" : h < 17 ? "🌤 Good Afternoon" : h < 21 ? "🌆 Good Evening" : "🌙 Good Night";
+                    return h < 12
+                      ? "☀️ Good Morning"
+                      : h < 17
+                        ? "🌤 Good Afternoon"
+                        : h < 21
+                          ? "🌆 Good Evening"
+                          : "🌙 Good Night";
                   })()}
                 </p>
                 <h2 className="text-2xl font-bold text-white mb-1">
                   {userData?.name || user?.email?.split("@")[0]} 👋
                 </h2>
-                <p className="text-gray-500 text-sm">Here is your portfolio overview.</p>
+                <p className="text-gray-500 text-sm">
+                  Here is your portfolio overview.
+                </p>
               </div>
               {/* Animated Plan Badge */}
               {(() => {
                 const p = getActivePlan(deposits);
                 return (
-                  <div className={`shrink-0 relative overflow-hidden rounded-2xl bg-gradient-to-br ${p.color} p-4 min-w-[100px] text-center border ${p.border} shadow-lg`}>
-                    <div className="absolute inset-0 bg-white/5 animate-pulse" style={{animationDuration:"2s"}} />
+                  <div
+                    className={`shrink-0 relative overflow-hidden rounded-2xl bg-gradient-to-br ${p.color} p-4 min-w-[100px] text-center border ${p.border} shadow-lg`}
+                  >
+                    <div
+                      className="absolute inset-0 bg-white/5 animate-pulse"
+                      style={{ animationDuration: "2s" }}
+                    />
                     <div className="text-2xl mb-1">{p.emoji}</div>
                     <p className="text-white text-xs font-bold">{p.label}</p>
-                    <p className="text-white/70 text-[10px]">+{p.profitStr} / cycle</p>
+                    <p className="text-white/70 text-[10px]">
+                      +{p.profitStr} / cycle
+                    </p>
                   </div>
                 );
               })()}
@@ -1076,9 +1522,14 @@ function MainContent({
                 </div>
                 <p className="text-gray-500 text-xs mb-0.5">{s.label}</p>
                 <p className="text-white text-lg font-bold tabular-nums">
-                  {s.label === "Balance"
-                    ? <LiveTicker balance={userData?.balance || 0} plan={getActivePlan(deposits)} />
-                    : s.value}
+                  {s.label === "Balance" ? (
+                    <LiveTicker
+                      balance={userData?.balance || 0}
+                      plan={getActivePlan(deposits)}
+                    />
+                  ) : (
+                    s.value
+                  )}
                 </p>
                 <p className="text-gray-600 text-xs">{s.sub}</p>
               </div>
@@ -1130,7 +1581,7 @@ function MainContent({
 
             {/* Feature 4 — Repeat Last Deposit */}
             {(() => {
-              const lastDep = deposits.find(d => d.status === "APPROVED");
+              const lastDep = deposits.find((d) => d.status === "APPROVED");
               if (!lastDep) return null;
               const plan = getActivePlan([lastDep]);
               return (
@@ -1144,16 +1595,40 @@ function MainContent({
                     </span>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 group-hover:bg-amber-500/20 transition-colors">
-                    <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    <svg
+                      className="w-5 h-5 text-amber-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.8}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                      />
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="text-white font-semibold text-sm">Repeat Last Deposit</p>
-                    <p className="text-amber-400/70 text-xs font-medium">${lastDep.amount} · {plan.label} (+{plan.profitStr})</p>
+                    <p className="text-white font-semibold text-sm">
+                      Repeat Last Deposit
+                    </p>
+                    <p className="text-amber-400/70 text-xs font-medium">
+                      ${lastDep.amount} · {plan.label} (+{plan.profitStr})
+                    </p>
                   </div>
-                  <svg className="w-4 h-4 text-gray-700 group-hover:text-amber-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  <svg
+                    className="w-4 h-4 text-gray-700 group-hover:text-amber-400 transition-colors"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
                   </svg>
                 </Link>
               );
@@ -1240,34 +1715,50 @@ function MainContent({
           {(() => {
             const CYCLE_MS = 96 * 60 * 60 * 1000;
             const activeTrades = (deposits || [])
-              .filter(d => d.status === "APPROVED" && d.tradeStatus !== "WITHDRAWN")
-              .map(d => {
+              .filter(
+                (d) => d.status === "APPROVED" && d.tradeStatus !== "WITHDRAWN",
+              )
+              .map((d) => {
                 const t = d.approvedAt ? new Date(d.approvedAt).getTime() : 0;
                 const elapsed = Date.now() - t;
                 const ready = elapsed >= CYCLE_MS;
                 const plan = getActivePlan([d]);
                 return {
-                  id: d.id, amount: d.amount || 0, plan, ready,
+                  id: d.id,
+                  amount: d.amount || 0,
+                  plan,
+                  ready,
                   pct: ready ? 100 : Math.min((elapsed / CYCLE_MS) * 100, 100),
                   remaining: ready ? 0 : CYCLE_MS - elapsed,
                   profit: (d.amount || 0) * plan.profit,
                 };
               });
-            const running = activeTrades.filter(t => !t.ready);
-            const ready = activeTrades.filter(t => t.ready);
-            const totalAvail = ready.reduce((s, t) => s + t.amount + t.profit, 0);
-            const totalRunningDeposit = running.reduce((s, t) => s + t.amount, 0);
-            const totalRunningProfit = running.reduce((s, t) => s + t.profit, 0);
+            const running = activeTrades.filter((t) => !t.ready);
+            const ready = activeTrades.filter((t) => t.ready);
+            const totalAvail = ready.reduce(
+              (s, t) => s + t.amount + t.profit,
+              0,
+            );
+            const totalRunningDeposit = running.reduce(
+              (s, t) => s + t.amount,
+              0,
+            );
+            const totalRunningProfit = running.reduce(
+              (s, t) => s + t.profit,
+              0,
+            );
 
             // For progress bar: show most recent running trade
-            const latestRunning = running.sort((a,b) => b.pct - a.pct)[0];
+            const latestRunning = running.sort((a, b) => b.pct - a.pct)[0];
 
             return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Active Trades Summary */}
                 <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-white text-sm font-semibold">Active Trades</p>
+                    <p className="text-white text-sm font-semibold">
+                      Active Trades
+                    </p>
                     <div className="flex items-center gap-2">
                       {running.length > 0 && (
                         <span className="flex items-center gap-1 text-[10px] font-semibold text-amber-400">
@@ -1281,7 +1772,9 @@ function MainContent({
                         </span>
                       )}
                       {activeTrades.length === 0 && (
-                        <span className="text-[10px] text-gray-600">No trades</span>
+                        <span className="text-[10px] text-gray-600">
+                          No trades
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1289,12 +1782,17 @@ function MainContent({
                   {latestRunning && (
                     <>
                       <div className="h-2 bg-white/[0.05] rounded-full overflow-hidden mb-1.5">
-                        <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 relative overflow-hidden transition-all duration-1000" style={{width:`${latestRunning.pct}%`}}>
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 relative overflow-hidden transition-all duration-1000"
+                          style={{ width: `${latestRunning.pct}%` }}
+                        >
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_linear_infinite]" />
                         </div>
                       </div>
                       <div className="flex justify-between text-[10px] mb-3">
-                        <span className="text-gray-600">{latestRunning.pct.toFixed(1)}%</span>
+                        <span className="text-gray-600">
+                          {latestRunning.pct.toFixed(1)}%
+                        </span>
                         <CycleCountdown initialMs={latestRunning.remaining} />
                       </div>
                     </>
@@ -1303,48 +1801,81 @@ function MainContent({
                   <div className="space-y-2">
                     {running.length > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500 text-xs">{running.length} running trade{running.length > 1 ? "s" : ""}</span>
-                        <span className="text-white text-xs font-semibold">${totalRunningDeposit.toFixed(2)} → +${totalRunningProfit.toFixed(2)}</span>
+                        <span className="text-gray-500 text-xs">
+                          {running.length} running trade
+                          {running.length > 1 ? "s" : ""}
+                        </span>
+                        <span className="text-white text-xs font-semibold">
+                          ${totalRunningDeposit.toFixed(2)} → +$
+                          {totalRunningProfit.toFixed(2)}
+                        </span>
                       </div>
                     )}
                     {ready.length > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-emerald-400 text-xs">{ready.length} ready trade{ready.length > 1 ? "s" : ""}</span>
-                        <span className="text-emerald-400 text-xs font-bold">${totalAvail.toFixed(2)} available</span>
+                        <span className="text-emerald-400 text-xs">
+                          {ready.length} ready trade
+                          {ready.length > 1 ? "s" : ""}
+                        </span>
+                        <span className="text-emerald-400 text-xs font-bold">
+                          ${totalAvail.toFixed(2)} available
+                        </span>
                       </div>
                     )}
                     {activeTrades.length === 0 && (
-                      <p className="text-gray-600 text-xs">Deposit to start your first trade</p>
+                      <p className="text-gray-600 text-xs">
+                        Deposit to start your first trade
+                      </p>
                     )}
                   </div>
                 </div>
 
                 {/* Earnings Estimator — all active trades */}
                 <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
-                  <p className="text-white text-sm font-semibold mb-4">Earnings Estimator</p>
+                  <p className="text-white text-sm font-semibold mb-4">
+                    Earnings Estimator
+                  </p>
                   {activeTrades.length === 0 ? (
-                    <p className="text-gray-600 text-xs">No active trades to estimate.</p>
+                    <p className="text-gray-600 text-xs">
+                      No active trades to estimate.
+                    </p>
                   ) : (
                     <div className="space-y-2">
-                      {activeTrades.slice(0,4).map(t => (
-                        <div key={t.id} className="flex items-center justify-between">
+                      {activeTrades.slice(0, 4).map((t) => (
+                        <div
+                          key={t.id}
+                          className="flex items-center justify-between"
+                        >
                           <div className="flex items-center gap-2">
-                            <span className={`w-1.5 h-1.5 rounded-full ${t.ready ? "bg-emerald-400" : "bg-amber-400"}`} />
-                            <span className="text-gray-500 text-xs">{t.plan.emoji} ${t.amount} · {t.plan.profitStr}</span>
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${t.ready ? "bg-emerald-400" : "bg-amber-400"}`}
+                            />
+                            <span className="text-gray-500 text-xs">
+                              {t.plan.emoji} ${t.amount} · {t.plan.profitStr}
+                            </span>
                           </div>
-                          <span className={`text-xs font-bold ${t.ready ? "text-emerald-400" : "text-gray-400"}`}>
+                          <span
+                            className={`text-xs font-bold ${t.ready ? "text-emerald-400" : "text-gray-400"}`}
+                          >
                             +${t.profit.toFixed(2)}
                           </span>
                         </div>
                       ))}
                       {activeTrades.length > 4 && (
-                        <p className="text-gray-600 text-[10px]">+{activeTrades.length - 4} more trades</p>
+                        <p className="text-gray-600 text-[10px]">
+                          +{activeTrades.length - 4} more trades
+                        </p>
                       )}
                       <div className="h-px bg-white/[0.06] my-1" />
                       <div className="flex justify-between">
-                        <span className="text-gray-400 text-xs font-semibold">Total Profit (all trades)</span>
+                        <span className="text-gray-400 text-xs font-semibold">
+                          Total Profit (all trades)
+                        </span>
                         <span className="text-amber-400 text-sm font-black">
-                          +${activeTrades.reduce((s,t) => s + t.profit, 0).toFixed(2)}
+                          +$
+                          {activeTrades
+                            .reduce((s, t) => s + t.profit, 0)
+                            .toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -1355,7 +1886,10 @@ function MainContent({
           })()}
 
           {/* ── Milestone Badges ── */}
-          <MilestoneBadges deposits={deposits} totalDeposit={userData?.totalDeposit || 0} />
+          <MilestoneBadges
+            deposits={deposits}
+            totalDeposit={userData?.totalDeposit || 0}
+          />
 
           {/* ── VIP Tier Progress ── */}
           <VIPTierProgress totalDeposit={userData?.totalDeposit || 0} />
@@ -1371,16 +1905,20 @@ function MainContent({
             <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-white text-sm font-semibold">Profile Completion</p>
+                  <p className="text-white text-sm font-semibold">
+                    Profile Completion
+                  </p>
                   <p className="text-gray-600 text-xs mt-0.5">
                     {profilePct < 60
                       ? "Complete your profile to unlock all features"
                       : profilePct < 100
-                      ? "Almost there! A few more steps remaining"
-                      : "Profile complete ✓"}
+                        ? "Almost there! A few more steps remaining"
+                        : "Profile complete ✓"}
                   </p>
                 </div>
-                <span className={`text-lg font-black ${profilePct < 60 ? "text-rose-400" : profilePct < 100 ? "text-amber-400" : "text-emerald-400"}`}>
+                <span
+                  className={`text-lg font-black ${profilePct < 60 ? "text-rose-400" : profilePct < 100 ? "text-amber-400" : "text-emerald-400"}`}
+                >
                   {profilePct}%
                 </span>
               </div>
@@ -1396,11 +1934,31 @@ function MainContent({
               {/* Checklist */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {[
-                  { label: "Full Name",    done: !!userData?.name,                  action: "profile" },
-                  { label: "Phone Number", done: !!userData?.phone,                 action: "profile" },
-                  { label: "Wallet Address",done: !!userData?.withdrawalAddress,    action: "profile" },
-                  { label: "First Deposit",done: !!(userData?.totalDeposit > 0),    action: null },
-                  { label: "Referral Code",done: !!(userData?.referralCode),        action: null },
+                  {
+                    label: "Full Name",
+                    done: !!userData?.name,
+                    action: "profile",
+                  },
+                  {
+                    label: "Phone Number",
+                    done: !!userData?.phone,
+                    action: "profile",
+                  },
+                  {
+                    label: "Wallet Address",
+                    done: !!userData?.withdrawalAddress,
+                    action: "profile",
+                  },
+                  {
+                    label: "First Deposit",
+                    done: !!(userData?.totalDeposit > 0),
+                    action: null,
+                  },
+                  {
+                    label: "Referral Code",
+                    done: !!userData?.referralCode,
+                    action: null,
+                  },
                 ].map((item) => (
                   <div
                     key={item.label}
@@ -1409,8 +1967,8 @@ function MainContent({
                       item.done
                         ? "bg-emerald-500/8 border border-emerald-500/15 text-emerald-400"
                         : item.action
-                        ? "bg-white/[0.03] border border-white/[0.07] text-gray-500 cursor-pointer hover:border-amber-400/30 hover:text-amber-400"
-                        : "bg-white/[0.03] border border-white/[0.07] text-gray-600"
+                          ? "bg-white/[0.03] border border-white/[0.07] text-gray-500 cursor-pointer hover:border-amber-400/30 hover:text-amber-400"
+                          : "bg-white/[0.03] border border-white/[0.07] text-gray-600"
                     }`}
                   >
                     <span className="text-sm">{item.done ? "✓" : "○"}</span>
@@ -1587,58 +2145,118 @@ function MainContent({
           {withdrawals && withdrawals.length > 0 && (
             <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
               <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
-                <p className="text-white font-semibold text-sm">Withdrawal Requests</p>
-                <span className="text-gray-600 text-xs">{withdrawals.length} request{withdrawals.length > 1 ? "s" : ""}</span>
+                <p className="text-white font-semibold text-sm">
+                  Withdrawal Requests
+                </p>
+                <span className="text-gray-600 text-xs">
+                  {withdrawals.length} request
+                  {withdrawals.length > 1 ? "s" : ""}
+                </span>
               </div>
               <div className="divide-y divide-white/[0.04]">
                 {withdrawals.map((w) => {
-                  const isPending   = w.status === "PENDING";
-                  const isApproved  = w.status === "APPROVED" || w.status === "COMPLETED";
-                  const isRejected  = w.status === "REJECTED";
+                  const isPending = w.status === "PENDING";
+                  const isApproved =
+                    w.status === "APPROVED" || w.status === "COMPLETED";
+                  const isRejected = w.status === "REJECTED";
                   return (
                     <div key={w.id} className="px-5 py-4">
                       <div className="flex items-center gap-4 mb-3">
                         {/* Animated status icon */}
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden ${isPending ? "bg-amber-500/15" : isApproved ? "bg-emerald-500/15" : "bg-rose-500/15"}`}>
-                          {isPending && <div className="absolute inset-0 bg-amber-400/10 animate-pulse" />}
-                          <svg className={`w-5 h-5 relative z-10 ${isPending ? "text-amber-400" : isApproved ? "text-emerald-400" : "text-rose-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            {isApproved
-                              ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              : isRejected
-                              ? <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              : <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            }
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden ${isPending ? "bg-amber-500/15" : isApproved ? "bg-emerald-500/15" : "bg-rose-500/15"}`}
+                        >
+                          {isPending && (
+                            <div className="absolute inset-0 bg-amber-400/10 animate-pulse" />
+                          )}
+                          <svg
+                            className={`w-5 h-5 relative z-10 ${isPending ? "text-amber-400" : isApproved ? "text-emerald-400" : "text-rose-400"}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            {isApproved ? (
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            ) : isRejected ? (
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            ) : (
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            )}
                           </svg>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-0.5">
-                            <p className="text-white font-bold">${(w.amount || 0).toFixed(2)}</p>
-                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${isPending ? "bg-amber-500/15 text-amber-400" : isApproved ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"}`}>
+                            <p className="text-white font-bold">
+                              ${(w.amount || 0).toFixed(2)}
+                            </p>
+                            <span
+                              className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${isPending ? "bg-amber-500/15 text-amber-400" : isApproved ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"}`}
+                            >
                               {w.status}
                             </span>
                           </div>
-                          <p className="text-gray-600 text-xs truncate font-mono">{w.address || "—"}</p>
-                          <p className="text-gray-700 text-[10px] mt-0.5">{w.requestedAt || w.createdAt?.slice(0,10) || "—"}</p>
+                          <p className="text-gray-600 text-xs truncate font-mono">
+                            {w.address || "—"}
+                          </p>
+                          <p className="text-gray-700 text-[10px] mt-0.5">
+                            {w.requestedAt || w.createdAt?.slice(0, 10) || "—"}
+                          </p>
                         </div>
                       </div>
 
                       {/* Animated status pipeline */}
                       <div className="flex items-center gap-1">
-                        {["Requested", "Processing", "Completed"].map((step, i) => {
-                          const stepDone = isApproved ? true : isPending ? i === 0 : false;
-                          const stepActive = isPending && i === 1;
-                          return (
-                            <div key={step} className="flex items-center gap-1 flex-1">
-                              <div className={`flex-1 flex flex-col items-center gap-1`}>
-                                <div className={`w-full h-1 rounded-full transition-all duration-700 ${stepDone ? "bg-emerald-400" : stepActive ? "bg-amber-400/50" : "bg-white/[0.06]"} relative overflow-hidden`}>
-                                  {stepActive && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent animate-[shimmer_1.5s_linear_infinite]" />}
+                        {["Requested", "Processing", "Completed"].map(
+                          (step, i) => {
+                            const stepDone = isApproved
+                              ? true
+                              : isPending
+                                ? i === 0
+                                : false;
+                            const stepActive = isPending && i === 1;
+                            return (
+                              <div
+                                key={step}
+                                className="flex items-center gap-1 flex-1"
+                              >
+                                <div
+                                  className={`flex-1 flex flex-col items-center gap-1`}
+                                >
+                                  <div
+                                    className={`w-full h-1 rounded-full transition-all duration-700 ${stepDone ? "bg-emerald-400" : stepActive ? "bg-amber-400/50" : "bg-white/[0.06]"} relative overflow-hidden`}
+                                  >
+                                    {stepActive && (
+                                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent animate-[shimmer_1.5s_linear_infinite]" />
+                                    )}
+                                  </div>
+                                  <span
+                                    className={`text-[9px] font-medium ${stepDone ? "text-emerald-400" : stepActive ? "text-amber-400" : "text-gray-700"}`}
+                                  >
+                                    {step}
+                                  </span>
                                 </div>
-                                <span className={`text-[9px] font-medium ${stepDone ? "text-emerald-400" : stepActive ? "text-amber-400" : "text-gray-700"}`}>{step}</span>
+                                {i < 2 && (
+                                  <div
+                                    className={`w-1 h-1 rounded-full mb-3 shrink-0 ${stepDone ? "bg-emerald-400" : "bg-white/[0.08]"}`}
+                                  />
+                                )}
                               </div>
-                              {i < 2 && <div className={`w-1 h-1 rounded-full mb-3 shrink-0 ${stepDone ? "bg-emerald-400" : "bg-white/[0.08]"}`} />}
-                            </div>
-                          );
-                        })}
+                            );
+                          },
+                        )}
                       </div>
                     </div>
                   );
@@ -1689,26 +2307,41 @@ function MainContent({
               <button
                 onClick={() => {
                   const link = `${window.location.origin}/signup?ref=${userData?.referralCode}&uid=${user?.uid}`;
-                  const msg = encodeURIComponent(`🚀 Join Vantis Capital and start earning with algorithmic trading!\n\nUse my referral link: ${link}`);
+                  const msg = encodeURIComponent(
+                    `🚀 Join Vantis Capital and start earning with algorithmic trading!\n\nUse my referral link: ${link}`,
+                  );
                   window.open(`https://wa.me/?text=${msg}`, "_blank");
                 }}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-xs font-semibold hover:bg-[#25D366]/20 transition-colors"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                 </svg>
                 WhatsApp
               </button>
               <button
                 onClick={() => {
                   const link = `${window.location.origin}/signup?ref=${userData?.referralCode}&uid=${user?.uid}`;
-                  const msg = encodeURIComponent(`🚀 Join Vantis Capital and start earning with algorithmic trading!\n\nUse my referral link: ${link}`);
-                  window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${msg}`, "_blank");
+                  const msg = encodeURIComponent(
+                    `🚀 Join Vantis Capital and start earning with algorithmic trading!\n\nUse my referral link: ${link}`,
+                  );
+                  window.open(
+                    `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${msg}`,
+                    "_blank",
+                  );
                 }}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#229ED9]/10 border border-[#229ED9]/20 text-[#229ED9] text-xs font-semibold hover:bg-[#229ED9]/20 transition-colors"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
                 </svg>
                 Telegram
               </button>
@@ -1902,14 +2535,28 @@ function MainContent({
           {/* ── Transaction History ── */}
           <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
-              <p className="text-white font-semibold text-sm">Transaction History</p>
-              <span className="text-gray-600 text-xs">{deposits.length} records</span>
+              <p className="text-white font-semibold text-sm">
+                Transaction History
+              </p>
+              <span className="text-gray-600 text-xs">
+                {deposits.length} records
+              </span>
             </div>
             {deposits.length === 0 ? (
               <div className="py-12 text-center">
                 <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                  <svg
+                    className="w-6 h-6 text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
+                    />
                   </svg>
                 </div>
                 <p className="text-gray-600 text-sm">No transactions yet</p>
@@ -1921,29 +2568,65 @@ function MainContent({
                   const isRejected = dep.status === "REJECTED";
                   const isPending = dep.status === "PENDING";
                   return (
-                    <div key={dep.id} className="flex items-center gap-4 px-5 py-4">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isApproved ? "bg-emerald-500/15" : isRejected ? "bg-rose-500/15" : "bg-amber-500/15"}`}>
-                        <svg className={`w-4 h-4 ${isApproved ? "text-emerald-400" : isRejected ? "text-rose-400" : "text-amber-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <div
+                      key={dep.id}
+                      className="flex items-center gap-4 px-5 py-4"
+                    >
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isApproved ? "bg-emerald-500/15" : isRejected ? "bg-rose-500/15" : "bg-amber-500/15"}`}
+                      >
+                        <svg
+                          className={`w-4 h-4 ${isApproved ? "text-emerald-400" : isRejected ? "text-rose-400" : "text-amber-400"}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
                           {isApproved ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15M9 12l3 3m0 0l3-3m-3 3V2.25" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15M9 12l3 3m0 0l3-3m-3 3V2.25"
+                            />
                           ) : isRejected ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
                           )}
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm font-semibold">Deposit</p>
+                        <p className="text-white text-sm font-semibold">
+                          Deposit
+                        </p>
                         <p className="text-gray-600 text-xs truncate">
                           {dep.createdAt
-                            ? new Date(dep.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                            ? new Date(dep.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                },
+                              )
                             : "—"}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-white font-bold text-sm">${(dep.amount || 0).toFixed(2)}</p>
-                        <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5 ${isApproved ? "bg-emerald-500/15 text-emerald-400" : isRejected ? "bg-rose-500/15 text-rose-400" : "bg-amber-500/15 text-amber-400"}`}>
+                        <p className="text-white font-bold text-sm">
+                          ${(dep.amount || 0).toFixed(2)}
+                        </p>
+                        <span
+                          className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5 ${isApproved ? "bg-emerald-500/15 text-emerald-400" : isRejected ? "bg-rose-500/15 text-rose-400" : "bg-amber-500/15 text-amber-400"}`}
+                        >
                           {dep.status}
                         </span>
                       </div>
@@ -2000,10 +2683,16 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!deposits.length || celebrationShownRef.current) return;
     const cycleMs = 96 * 60 * 60 * 1000;
-    const approved = deposits.filter(d => d.status === "APPROVED")
-      .sort((a, b) => new Date(b.approvedAt || 0).getTime() - new Date(a.approvedAt || 0).getTime());
+    const approved = deposits
+      .filter((d) => d.status === "APPROVED")
+      .sort(
+        (a, b) =>
+          new Date(b.approvedAt || 0).getTime() -
+          new Date(a.approvedAt || 0).getTime(),
+      );
     if (!approved.length) return;
-    const elapsed = Date.now() - new Date(approved[0].approvedAt || 0).getTime();
+    const elapsed =
+      Date.now() - new Date(approved[0].approvedAt || 0).getTime();
     const sessionKey = `vantis_celebrated_${approved[0].id}`;
     if (elapsed >= cycleMs && !sessionStorage.getItem(sessionKey)) {
       celebrationShownRef.current = true;
@@ -2037,10 +2726,14 @@ export default function DashboardPage() {
 
   const fetchWithdrawals = async (userId) => {
     try {
-      const { collection, query, where, getDocs } = await import("firebase/firestore");
-      const q = query(collection(db, "withdrawals"), where("userId", "==", userId));
+      const { collection, query, where, getDocs } =
+        await import("firebase/firestore");
+      const q = query(
+        collection(db, "withdrawals"),
+        where("userId", "==", userId),
+      );
       const snap = await getDocs(q);
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       docs.sort((a, b) => {
         const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -2068,14 +2761,18 @@ export default function DashboardPage() {
           !!data.phone,
           !!data.withdrawalAddress,
           !!(data.totalDeposit > 0),
-          !!(data.referralCode),
+          !!data.referralCode,
         ];
-        setProfilePct(Math.round((fields.filter(Boolean).length / fields.length) * 100));
+        setProfilePct(
+          Math.round((fields.filter(Boolean).length / fields.length) * 100),
+        );
 
         // ── Streak tracking ──
-        const todayStr = new Date().toISOString().slice(0,10); // "2026-03-09"
+        const todayStr = new Date().toISOString().slice(0, 10); // "2026-03-09"
         const lastLogin = data.lastLoginDate || "";
-        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+        const yesterday = new Date(Date.now() - 86400000)
+          .toISOString()
+          .slice(0, 10);
         let newStreak = data.loginStreak || 0;
         if (lastLogin !== todayStr) {
           newStreak = lastLogin === yesterday ? newStreak + 1 : 1;
@@ -2086,7 +2783,7 @@ export default function DashboardPage() {
           data.loginStreak = newStreak;
           data.lastLoginDate = todayStr;
         }
-        setUserData({...data});
+        setUserData({ ...data });
 
         // Clear balanceUpdated flag silently (no modal)
         if (data.balanceUpdated === true || data.withdrawalUpdated === true) {
@@ -2452,13 +3149,21 @@ export default function DashboardPage() {
           <MainContent {...contentProps} />
         </main>
         <nav className="fixed bottom-0 left-0 right-0 z-20 bg-[#0D1117]/95 backdrop-blur-xl border-t border-white/[0.08] flex items-center justify-around px-2 py-2">
-          {NAV.filter(item => user?.email === ADMIN_EMAIL ? item.key !== "withdraw" : true).map((item) => (
+          {NAV.filter((item) =>
+            user?.email === ADMIN_EMAIL ? item.key !== "withdraw" : true,
+          ).map((item) => (
             <button
               key={item.key}
               onClick={() => setActiveTab(item.key)}
               className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${activeTab === item.key ? "text-amber-400" : "text-gray-600"}`}
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.8}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d={item.d} />
               </svg>
               <span className="text-[10px] font-medium">{item.label}</span>
@@ -2469,8 +3174,18 @@ export default function DashboardPage() {
               href="/deposit"
               className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-emerald-400"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.8}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
               </svg>
               <span className="text-[10px] font-medium">Deposit</span>
             </Link>
@@ -2480,8 +3195,18 @@ export default function DashboardPage() {
               href="/admin"
               className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-amber-400"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.8}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
+                />
               </svg>
               <span className="text-[10px] font-medium">Admin</span>
             </Link>
