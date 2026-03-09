@@ -434,6 +434,7 @@ function BalanceUpdatedModal({ oldBalance, newBalance, onClose }) {
 // ── Withdraw Tab Component ─────────────────────────────────────────────────────
 function WithdrawTab({ user, userData, deposits }) {
   const [address, setAddress] = useState(userData?.withdrawalAddress || "");
+  const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -488,6 +489,15 @@ function WithdrawTab({ user, userData, deposits }) {
 
   const handleSubmit = async () => {
     if (!hasReady) return;
+    const requestedAmt = parseFloat(amount);
+    if (!requestedAmt || requestedAmt <= 0) {
+      setError("Enter a valid amount");
+      return;
+    }
+    if (requestedAmt > totalAvailable) {
+      setError(`Maximum available is $${totalAvailable.toFixed(2)}`);
+      return;
+    }
     if (!address.trim()) {
       setError("Enter a withdrawal address");
       return;
@@ -509,10 +519,9 @@ function WithdrawTab({ user, userData, deposits }) {
         userId: user.uid,
         userEmail: user.email,
         userName: userData?.name || "",
-        amount: totalAvailable,
+        amount: requestedAmt,
         address: address.trim(),
         status: "PENDING",
-        // Store which deposit IDs are included
         depositIds: readyTrades.map((t) => t.id),
         tradeCount: readyTrades.length,
         createdAt: new Date().toISOString(),
@@ -548,7 +557,7 @@ function WithdrawTab({ user, userData, deposits }) {
         <p className="text-gray-500 text-sm mb-2">
           Your withdrawal of{" "}
           <span className="text-white font-bold">
-            ${totalAvailable.toFixed(2)}
+            ${parseFloat(amount || totalAvailable).toFixed(2)}
           </span>{" "}
           has been sent to admin.
         </p>
@@ -681,14 +690,62 @@ function WithdrawTab({ user, userData, deposits }) {
       {/* Withdraw Form */}
       {hasReady && (
         <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-5 space-y-4">
-          <p className="text-white font-semibold text-sm">
-            Withdraw ${totalAvailable.toFixed(2)}
-          </p>
+          <p className="text-white font-semibold text-sm">Withdrawal Request</p>
           {error && (
             <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
               {error}
             </p>
           )}
+
+          {/* Amount input */}
+          <div>
+            <label className="text-gray-400 text-xs font-medium block mb-2">
+              Amount (USD)
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">
+                $
+              </span>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                min="1"
+                step="0.01"
+                max={totalAvailable}
+                className="w-full pl-8 pr-24 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-600 text-sm focus:outline-none focus:border-emerald-400/50 transition-colors"
+              />
+              <button
+                onClick={() => setAmount(totalAvailable.toFixed(2))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+              >
+                MAX
+              </button>
+            </div>
+            <div className="flex items-center justify-between mt-1.5">
+              <p className="text-gray-600 text-xs">
+                Available:{" "}
+                <span className="text-emerald-400 font-semibold">
+                  ${totalAvailable.toFixed(2)}
+                </span>{" "}
+                from {readyTrades.length} trade
+                {readyTrades.length > 1 ? "s" : ""}
+              </p>
+              {amount &&
+                parseFloat(amount) > 0 &&
+                parseFloat(amount) <= totalAvailable && (
+                  <p className="text-gray-600 text-xs">
+                    Remaining:{" "}
+                    <span className="text-gray-400">
+                      ${(totalAvailable - parseFloat(amount)).toFixed(2)}
+                    </span>
+                  </p>
+                )}
+            </div>
+          </div>
+
+          {/* Address input */}
           <div>
             <label className="text-gray-400 text-xs font-medium block mb-2">
               Withdrawal Address (USDT TRC20)
@@ -703,12 +760,12 @@ function WithdrawTab({ user, userData, deposits }) {
           </div>
           <button
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || !amount || parseFloat(amount) <= 0}
             className="w-full py-3.5 bg-gradient-to-r from-emerald-400 to-teal-500 text-black text-sm font-black rounded-xl hover:opacity-90 disabled:opacity-50 transition-all active:scale-95"
           >
             {submitting
               ? "Submitting..."
-              : `Withdraw $${totalAvailable.toFixed(2)} from ${readyTrades.length} Trade${readyTrades.length > 1 ? "s" : ""}`}
+              : `Withdraw $${parseFloat(amount) > 0 ? parseFloat(amount).toFixed(2) : "0.00"}`}
           </button>
         </div>
       )}
