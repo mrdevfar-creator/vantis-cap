@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
 
     try {
       await sendPasswordResetEmail(auth, email);
-      setMessage("পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে পাঠানো হয়েছে!");
+      setMessage("A reset link has been sent to your email");
     } catch (error) {
       setError(error.message);
     } finally {
@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
   return (
     <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px" }}>
       <h1 style={{ fontSize: "24px", marginBottom: "20px" }}>
-        পাসওয়ার্ড ভুলে গেছেন?
+        Forgot your password?
       </h1>
 
       {message && (
@@ -62,12 +62,15 @@ export default function ForgotPasswordPage() {
       )}
 
       <p style={{ marginBottom: "20px", color: "#666" }}>
-        আপনার ইমেইল ঠিকানা দিন। আমরা পাসওয়ার্ড রিসেট করার লিংক পাঠাব।
+        Please write your email address. We will sent a reset link to your
+        email.
       </p>
 
       <form onSubmit={handleResetPassword}>
         <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>ইমেইল</label>
+          <label style={{ display: "block", marginBottom: "5px" }}>
+            E-mail
+          </label>
           <input
             type="email"
             value={email}
@@ -96,13 +99,13 @@ export default function ForgotPasswordPage() {
             marginBottom: "15px",
           }}
         >
-          {loading ? "পাঠানো হচ্ছে..." : "রিসেট লিংক পাঠান"}
+          {loading ? "Sending..." : "Send reset link"}
         </button>
       </form>
 
       <div style={{ textAlign: "center" }}>
         <Link href="/login" style={{ color: "#0070f3" }}>
-          লগইন পেজে ফিরে যান
+          back to login page
         </Link>
       </div>
     </div>

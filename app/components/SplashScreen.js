@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-
+import LogoRev from "@/app/public/vantis-trs-logo.png";
 // ── Seeded pseudo-random ──────────────────────────────────────────────────────
 function seededRand(seed) {
   let s = seed;
@@ -262,7 +262,7 @@ export default function SplashScreen({ onFinish }) {
             <div className="absolute inset-0 rounded-[28px] bg-amber-400/10 blur-xl animate-pulse" />
             <div className="relative w-28 h-28 rounded-[28px] bg-amber-500/10 border border-amber-500/25 flex items-center justify-center">
               <Image
-                src="/vantis-trs-logo.png"
+                src={LogoRev}
                 alt="Vantis Capital"
                 width={64}
                 height={64}
