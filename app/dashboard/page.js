@@ -1,4 +1,3 @@
-// app/dashboard/page.js
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -99,6 +98,235 @@ function getActivePlan(deposits) {
 }
 
 // ── 1. Live Portfolio Ticker ───────────────────────────────────────────────────
+function BinanceTutorialModal() {
+  const [step, setStep] = useState(0);
+  const [type, setType] = useState("deposit");
+
+  const close = () => {
+    const el = document.getElementById("binance-tutorial-modal");
+    if (el) el.classList.add("hidden");
+    setStep(0);
+  };
+
+  const depositSteps = [
+    {
+      title: "Open Binance App",
+      desc: "Launch the Binance app on your phone and make sure you are logged into your account.",
+      highlight: "Open Binance App",
+      color: "text-amber-400",
+      bg: "bg-amber-500/10 border-amber-500/20",
+      icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+    },
+    {
+      title: "Go to Wallets → Spot",
+      desc: 'Tap the "Wallets" icon at the bottom, then select "Spot" to view your spot wallet balances.',
+      highlight: "Wallets → Spot",
+      color: "text-blue-400",
+      bg: "bg-blue-500/10 border-blue-500/20",
+      icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
+    },
+    {
+      title: "Find USDT & Tap Deposit",
+      desc: 'Search for "USDT" in your spot wallet list. Tap on USDT, then tap the "Deposit" button.',
+      highlight: "USDT → Deposit",
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10 border-emerald-500/20",
+      icon: "M12 4v16m8-8H4",
+    },
+    {
+      title: "Select TRC20 Network",
+      desc: 'Binance will ask you to choose a network. You MUST select "TRC20 (Tron)" — do NOT select ERC20 or BEP20 or any other network.',
+      highlight: "⚠️ Select TRC20 only",
+      color: "text-red-400",
+      bg: "bg-red-500/10 border-red-500/20",
+      icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
+    },
+    {
+      title: "Copy Your Deposit Address",
+      desc: 'Binance shows your USDT TRC20 deposit address. Tap "Copy", then paste it into the Vantis Capital deposit field.',
+      highlight: "Copy → Paste in Vantis",
+      color: "text-violet-400",
+      bg: "bg-violet-500/10 border-violet-500/20",
+      icon: "M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z",
+    },
+  ];
+
+  const withdrawSteps = [
+    {
+      title: "Open Binance App",
+      desc: "Launch Binance and make sure you are logged in.",
+      highlight: "Open Binance App",
+      color: "text-amber-400",
+      bg: "bg-amber-500/10 border-amber-500/20",
+      icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+    },
+    {
+      title: "Go to Wallets → Spot",
+      desc: 'Tap "Wallets" at the bottom, then tap "Spot" to open your spot wallet.',
+      highlight: "Wallets → Spot",
+      color: "text-blue-400",
+      bg: "bg-blue-500/10 border-blue-500/20",
+      icon: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
+    },
+    {
+      title: "Find USDT & Tap Withdraw",
+      desc: 'Search for "USDT" in your spot wallet. Tap it, then tap "Withdraw".',
+      highlight: "USDT → Withdraw",
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10 border-emerald-500/20",
+      icon: "M12 20l-8-8 8-8m8 8H4",
+    },
+    {
+      title: "Select TRC20 Network",
+      desc: 'Choose "TRC20 (Tron)" as your network. This must match the address you are sending to. Using the wrong network will result in permanently lost funds.',
+      highlight: "⚠️ TRC20 network only",
+      color: "text-red-400",
+      bg: "bg-red-500/10 border-red-500/20",
+      icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
+    },
+    {
+      title: "Paste Vantis Address & Confirm",
+      desc: "Paste the Vantis Capital deposit address, enter the USDT amount, review the fees, then confirm and submit.",
+      highlight: "Paste address → Confirm",
+      color: "text-violet-400",
+      bg: "bg-violet-500/10 border-violet-500/20",
+      icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+    },
+  ];
+
+  const steps = type === "deposit" ? depositSteps : withdrawSteps;
+  const cur = steps[step];
+
+  return (
+    <div
+      id="binance-tutorial-modal"
+      className="hidden fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
+      <div className="w-full max-w-md bg-[#0D1117] border border-white/[0.08] rounded-3xl overflow-hidden shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.06]">
+          <div>
+            <p className="text-white font-bold text-base">Binance Tutorial</p>
+            <p className="text-gray-500 text-xs mt-0.5">
+              Step {step + 1} of {steps.length}
+            </p>
+          </div>
+          <button
+            onClick={close}
+            className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"
+          >
+            <svg
+              className="w-4 h-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Type switcher */}
+        <div className="flex gap-2 px-6 pt-5">
+          {["deposit", "withdraw"].map((t) => (
+            <button
+              key={t}
+              onClick={() => {
+                setType(t);
+                setStep(0);
+              }}
+              className={`flex-1 py-2 rounded-xl text-sm font-semibold capitalize transition-all ${
+                type === t
+                  ? "bg-amber-400 text-black"
+                  : "bg-white/5 text-gray-400 border border-white/10 hover:text-white"
+              }`}
+            >
+              {t === "deposit" ? "How to Deposit" : "How to Withdraw"}
+            </button>
+          ))}
+        </div>
+
+        {/* Step content */}
+        <div className="px-6 py-6">
+          {/* Progress bar */}
+          <div className="flex gap-1.5 mb-6">
+            {steps.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setStep(i)}
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  i === step
+                    ? "bg-amber-400 flex-[3]"
+                    : i < step
+                      ? "bg-amber-400/40 flex-1"
+                      : "bg-white/10 flex-1"
+                }`}
+              />
+            ))}
+          </div>
+
+          <div
+            className={`w-14 h-14 rounded-2xl ${cur.bg} border flex items-center justify-center mb-5`}
+          >
+            <svg
+              className={`w-7 h-7 ${cur.color}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.8}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d={cur.icon} />
+            </svg>
+          </div>
+
+          <div
+            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold mb-3 ${cur.bg} border ${cur.color}`}
+          >
+            {cur.highlight}
+          </div>
+
+          <h3 className="text-white font-bold text-lg mb-2">{cur.title}</h3>
+          <p className="text-gray-400 text-sm leading-relaxed">{cur.desc}</p>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex gap-3 px-6 pb-6">
+          <button
+            onClick={() => setStep((s) => Math.max(0, s - 1))}
+            disabled={step === 0}
+            className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-gray-400 text-sm font-semibold disabled:opacity-30 hover:text-white transition-colors"
+          >
+            ← Back
+          </button>
+          {step < steps.length - 1 ? (
+            <button
+              onClick={() => setStep((s) => s + 1)}
+              className="flex-[2] py-3 rounded-xl bg-amber-400 text-black text-sm font-bold hover:opacity-90 transition-opacity"
+            >
+              Next →
+            </button>
+          ) : (
+            <button
+              onClick={close}
+              className="flex-[2] py-3 rounded-xl bg-emerald-400 text-black text-sm font-bold hover:opacity-90 transition-opacity"
+            >
+              Got it ✓
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LiveTicker({ balance, plan }) {
   const [displayed, setDisplayed] = useState(balance);
   const targetRef = useRef(balance);
@@ -1238,11 +1466,67 @@ function WithdrawTab({ user, userData, deposits }) {
             </div>
           </div>
 
+          {/* ⚠️ TRC20 Warning */}
+          <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/25 rounded-2xl px-4 py-3.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+              <svg
+                className="w-4 h-4 text-amber-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-amber-400 text-xs font-bold mb-1">
+                Important — TRC20 Network Only
+              </p>
+              <p className="text-amber-300/80 text-xs leading-relaxed">
+                You must provide a{" "}
+                <span className="font-bold text-amber-300">
+                  USDT TRC20 (Tron network)
+                </span>{" "}
+                wallet address. Withdrawals sent to any other network (ERC20,
+                BEP20, etc.) will be permanently lost and cannot be recovered.
+              </p>
+            </div>
+          </div>
+
           {/* Address input */}
           <div>
-            <label className="text-gray-400 text-xs font-medium block mb-2">
-              Withdrawal Address (USDT TRC20)
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-gray-400 text-xs font-medium">
+                Withdrawal Address (USDT TRC20)
+              </label>
+              <button
+                onClick={() => {
+                  const el = document.getElementById("binance-tutorial-modal");
+                  if (el) el.classList.remove("hidden");
+                }}
+                className="flex items-center gap-1 text-cyan-400 text-[11px] font-medium hover:text-cyan-300 transition-colors"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+                  />
+                </svg>
+                How to find my address?
+              </button>
+            </div>
             <input
               type="text"
               value={address}
@@ -2924,6 +3208,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#060810] text-white">
+      <BinanceTutorialModal />
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/4 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-violet-500/4 rounded-full blur-[100px]" />

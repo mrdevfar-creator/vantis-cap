@@ -52,6 +52,11 @@ export default function AdminPage() {
   const [wFilter, setWFilter] = useState("PENDING");
   const [wUpdating, setWUpdating] = useState(null);
 
+  // Contact Messages
+  const [contacts, setContacts] = useState([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactFilter, setContactFilter] = useState("unread");
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -402,6 +407,54 @@ export default function AdminPage() {
       const unsub = fetchWithdrawals();
       window.__withdrawalsUnsub = unsub;
     }
+    if (tab === "contacts" && contacts.length === 0) {
+      fetchContacts();
+    }
+  };
+
+  const fetchContacts = async () => {
+    setContactsLoading(true);
+    try {
+      const snap = await getDocs(
+        query(collection(db, "contactMessages"), orderBy("createdAt", "desc")),
+      );
+      setContacts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } catch (e) {
+      try {
+        const snap = await getDocs(collection(db, "contactMessages"));
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        data.sort(
+          (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+        );
+        setContacts(data);
+      } catch (e2) {
+        console.error(e2);
+      }
+    } finally {
+      setContactsLoading(false);
+    }
+  };
+
+  const handleMarkContactRead = async (id) => {
+    try {
+      await updateDoc(doc(db, "contactMessages", id), { status: "read" });
+      setContacts((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, status: "read" } : c)),
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteContact = async (id) => {
+    if (!confirm("Delete this message?")) return;
+    try {
+      const { deleteDoc } = await import("firebase/firestore");
+      await deleteDoc(doc(db, "contactMessages", id));
+      setContacts((prev) => prev.filter((c) => c.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   // Update current balance
@@ -639,6 +692,15 @@ export default function AdminPage() {
                   ? withdrawals.filter((w) => w.status === "PENDING").length
                   : null,
               badgeColor: "bg-rose-500/20 text-rose-400",
+            },
+            {
+              key: "contacts",
+              label: "Messages",
+              badge:
+                contacts.filter((c) => c.status === "unread").length > 0
+                  ? contacts.filter((c) => c.status === "unread").length
+                  : null,
+              badgeColor: "bg-cyan-500/20 text-cyan-400",
             },
           ].map((tab) => (
             <button
@@ -1468,6 +1530,148 @@ export default function AdminPage() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── CONTACTS TAB ── */}
+      {activeTab === "contacts" && (
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
+            <div>
+              <h2 className="text-white font-semibold">Contact Messages</h2>
+              <p className="text-gray-500 text-xs mt-0.5">
+                {contacts.length} total ·{" "}
+                {contacts.filter((c) => c.status === "unread").length} unread
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {["unread", "read", "all"].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setContactFilter(f)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
+                    contactFilter === f
+                      ? "bg-white text-black"
+                      : "bg-white/5 text-gray-400 hover:text-white border border-white/10"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+              <button
+                onClick={fetchContacts}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-gray-400 hover:text-white border border-white/10 transition-colors"
+              >
+                ↻ Refresh
+              </button>
+            </div>
+          </div>
+
+          {contactsLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-6 h-6 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="divide-y divide-white/[0.05]">
+              {contacts
+                .filter((c) =>
+                  contactFilter === "all" ? true : c.status === contactFilter,
+                )
+                .map((c) => (
+                  <div
+                    key={c.id}
+                    className={`p-6 transition-colors ${c.status === "unread" ? "bg-cyan-500/[0.03]" : ""}`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {/* Avatar */}
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-500/20 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                          <span className="text-cyan-400 text-sm font-bold">
+                            {c.name?.[0]?.toUpperCase() || "?"}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-white text-sm font-semibold">
+                              {c.name}
+                            </span>
+                            {c.status === "unread" && (
+                              <span className="px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 text-[10px] font-semibold">
+                                NEW
+                              </span>
+                            )}
+                            <span className="text-gray-600 text-xs">
+                              {c.email}
+                            </span>
+                          </div>
+                          {c.subject && (
+                            <p className="text-amber-400/70 text-xs font-medium mt-0.5">
+                              {c.subject}
+                            </p>
+                          )}
+                          <p className="text-gray-400 text-sm mt-2 leading-relaxed">
+                            {c.message}
+                          </p>
+                          <p className="text-gray-700 text-[11px] mt-2">
+                            {c.createdAt
+                              ? new Date(c.createdAt).toLocaleString("en-US", {
+                                  dateStyle: "medium",
+                                  timeStyle: "short",
+                                })
+                              : "—"}
+                          </p>
+                        </div>
+                      </div>
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a
+                          href={`mailto:${c.email}?subject=Re: ${c.subject || "Your inquiry"}`}
+                          className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
+                        >
+                          Reply
+                        </a>
+                        {c.status === "unread" && (
+                          <button
+                            onClick={() => handleMarkContactRead(c.id)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-colors"
+                          >
+                            Mark Read
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteContact(c.id)}
+                          className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              {contacts.filter((c) =>
+                contactFilter === "all" ? true : c.status === contactFilter,
+              ).length === 0 && (
+                <div className="flex flex-col items-center justify-center py-16 gap-2">
+                  <svg
+                    className="w-8 h-8 text-gray-700"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                    />
+                  </svg>
+                  <p className="text-gray-600 text-sm">
+                    No {contactFilter === "all" ? "" : contactFilter} messages
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

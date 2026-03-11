@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { db } from "../lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -10,14 +12,32 @@ export default function ContactUs() {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name || !formData.email || !formData.message) return;
-    setSubmitted(true);
+    setLoading(true);
+    setError("");
+    try {
+      await addDoc(collection(db, "contactMessages"), {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject || "General Inquiry",
+        message: formData.message,
+        status: "unread",
+        createdAt: new Date().toISOString(),
+      });
+      setSubmitted(true);
+    } catch (e) {
+      setError("Failed to send message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const contactInfo = [
@@ -287,28 +307,78 @@ export default function ContactUs() {
                   />
                 </div>
 
+                {/* Error */}
+                {error && (
+                  <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                    <svg
+                      className="w-4 h-4 text-red-400 shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                      />
+                    </svg>
+                    <p className="text-red-400 text-sm">{error}</p>
+                  </div>
+                )}
+
                 {/* Submit */}
                 <button
                   onClick={handleSubmit}
                   disabled={
-                    !formData.name || !formData.email || !formData.message
+                    !formData.name ||
+                    !formData.email ||
+                    !formData.message ||
+                    loading
                   }
                   className="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-sm font-bold rounded-xl hover:opacity-90 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-amber-500/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 >
-                  Send Message
-                  <svg
-                    className="w-4 h-4 inline ml-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                    />
-                  </svg>
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg
+                        className="w-4 h-4 animate-spin"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                      </svg>
+                      Sending...
+                    </span>
+                  ) : (
+                    <>
+                      Send Message
+                      <svg
+                        className="w-4 h-4 inline ml-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                        />
+                      </svg>
+                    </>
+                  )}
                 </button>
 
                 <p className="text-gray-600 text-xs text-center">
