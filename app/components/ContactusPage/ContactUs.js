@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { db } from "@/app/lib/firebase";
-import { collection, addDoc } from "firebase/firestore";
 
 export default function ContactUs() {
   const [formData, setFormData] = useState({
@@ -24,6 +22,8 @@ export default function ContactUs() {
     setLoading(true);
     setError("");
     try {
+      const { db } = await import("@/app/lib/firebase");
+      const { collection, addDoc } = await import("firebase/firestore");
       await addDoc(collection(db, "contactMessages"), {
         name: formData.name,
         email: formData.email,
@@ -34,7 +34,14 @@ export default function ContactUs() {
       });
       setSubmitted(true);
     } catch (e) {
-      setError("Failed to send message. Please try again.");
+      console.error("Contact form error:", e);
+      if (e?.code === "permission-denied") {
+        setError("Permission denied. Please check Firestore rules.");
+      } else if (e?.code === "unavailable") {
+        setError("Network error. Please check your connection and try again.");
+      } else {
+        setError("Failed to send message. Error: " + (e?.message || "Unknown error"));
+      }
     } finally {
       setLoading(false);
     }
@@ -43,58 +50,28 @@ export default function ContactUs() {
   const contactInfo = [
     {
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
         </svg>
       ),
       label: "Email Us",
-      value: "support@yourfirm.com",
+      value: "infos.vantiscap@gmail.com",
       accent: "from-amber-400 to-orange-500",
     },
     {
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
         </svg>
       ),
       label: "Call Us",
-      value: "+1 (800) 123-4567",
+      value: "+44 7455 965471",
       accent: "from-emerald-400 to-teal-500",
     },
     {
       icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
       label: "Response Time",
@@ -147,9 +124,7 @@ export default function ContactUs() {
                 key={info.label}
                 className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 hover:bg-white/[0.05] transition-colors"
               >
-                <div
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${info.accent} flex items-center justify-center text-white mb-4 shadow-md`}
-                >
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${info.accent} flex items-center justify-center text-white mb-4 shadow-md`}>
                   {info.icon}
                 </div>
                 <p className="text-gray-500 text-xs mb-1">{info.label}</p>
@@ -172,38 +147,19 @@ export default function ContactUs() {
             {submitted ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6">
-                  <svg
-                    className="w-8 h-8 text-emerald-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M4.5 12.75l6 6 9-13.5"
-                    />
+                  <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
                 </div>
-                <h3 className="text-white text-xl font-bold mb-3">
-                  Message Sent!
-                </h3>
+                <h3 className="text-white text-xl font-bold mb-3">Message Sent!</h3>
                 <p className="text-gray-400 text-sm max-w-sm">
-                  Thank you for reaching out, {formData.name}. We&apos;ll get
-                  back to you at{" "}
-                  <span className="text-white">{formData.email}</span> within 2
-                  hours.
+                  Thank you for reaching out, {formData.name}. We&apos;ll get back to you at{" "}
+                  <span className="text-white">{formData.email}</span> within 2 hours.
                 </p>
                 <button
                   onClick={() => {
                     setSubmitted(false);
-                    setFormData({
-                      name: "",
-                      email: "",
-                      subject: "",
-                      message: "",
-                    });
+                    setFormData({ name: "", email: "", subject: "", message: "" });
                   }}
                   className="mt-8 text-xs text-gray-500 hover:text-gray-300 transition-colors underline underline-offset-4"
                 >
@@ -215,9 +171,7 @@ export default function ContactUs() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   {/* Name */}
                   <div>
-                    <label className="text-gray-400 text-xs font-medium block mb-2">
-                      Full Name *
-                    </label>
+                    <label className="text-gray-400 text-xs font-medium block mb-2">Full Name *</label>
                     <input
                       type="text"
                       name="name"
@@ -230,9 +184,7 @@ export default function ContactUs() {
 
                   {/* Email */}
                   <div>
-                    <label className="text-gray-400 text-xs font-medium block mb-2">
-                      Email Address *
-                    </label>
+                    <label className="text-gray-400 text-xs font-medium block mb-2">Email Address *</label>
                     <input
                       type="email"
                       name="email"
@@ -246,9 +198,7 @@ export default function ContactUs() {
 
                 {/* Subject */}
                 <div>
-                  <label className="text-gray-400 text-xs font-medium block mb-2">
-                    Subject
-                  </label>
+                  <label className="text-gray-400 text-xs font-medium block mb-2">Subject</label>
                   <select
                     name="subject"
                     value={formData.subject}
@@ -256,47 +206,18 @@ export default function ContactUs() {
                     className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-sm focus:outline-none focus:border-amber-400/50 transition-colors appearance-none"
                     style={{ color: formData.subject ? "#fff" : "#4b5563" }}
                   >
-                    <option value="" disabled style={{ background: "#1a1a1a" }}>
-                      Select a subject
-                    </option>
-                    <option
-                      value="investment"
-                      style={{ background: "#1a1a1a", color: "#fff" }}
-                    >
-                      Investment Inquiry
-                    </option>
-                    <option
-                      value="account"
-                      style={{ background: "#1a1a1a", color: "#fff" }}
-                    >
-                      Account Support
-                    </option>
-                    <option
-                      value="withdrawal"
-                      style={{ background: "#1a1a1a", color: "#fff" }}
-                    >
-                      Withdrawal Request
-                    </option>
-                    <option
-                      value="partnership"
-                      style={{ background: "#1a1a1a", color: "#fff" }}
-                    >
-                      Partnership
-                    </option>
-                    <option
-                      value="other"
-                      style={{ background: "#1a1a1a", color: "#fff" }}
-                    >
-                      Other
-                    </option>
+                    <option value="" disabled style={{ background: "#1a1a1a" }}>Select a subject</option>
+                    <option value="investment" style={{ background: "#1a1a1a", color: "#fff" }}>Investment Inquiry</option>
+                    <option value="account" style={{ background: "#1a1a1a", color: "#fff" }}>Account Support</option>
+                    <option value="withdrawal" style={{ background: "#1a1a1a", color: "#fff" }}>Withdrawal Request</option>
+                    <option value="partnership" style={{ background: "#1a1a1a", color: "#fff" }}>Partnership</option>
+                    <option value="other" style={{ background: "#1a1a1a", color: "#fff" }}>Other</option>
                   </select>
                 </div>
 
                 {/* Message */}
                 <div>
-                  <label className="text-gray-400 text-xs font-medium block mb-2">
-                    Message *
-                  </label>
+                  <label className="text-gray-400 text-xs font-medium block mb-2">Message *</label>
                   <textarea
                     name="message"
                     value={formData.message}
@@ -309,19 +230,9 @@ export default function ContactUs() {
 
                 {/* Error */}
                 {error && (
-                  <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
-                    <svg
-                      className="w-4 h-4 text-red-400 shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                      />
+                  <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                    <svg className="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                     </svg>
                     <p className="text-red-400 text-sm">{error}</p>
                   </div>
@@ -330,52 +241,22 @@ export default function ContactUs() {
                 {/* Submit */}
                 <button
                   onClick={handleSubmit}
-                  disabled={
-                    !formData.name ||
-                    !formData.email ||
-                    !formData.message ||
-                    loading
-                  }
+                  disabled={!formData.name || !formData.email || !formData.message || loading}
                   className="w-full py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-black text-sm font-bold rounded-xl hover:opacity-90 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-amber-500/20 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <svg
-                        className="w-4 h-4 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
                       Sending...
                     </span>
                   ) : (
                     <>
                       Send Message
-                      <svg
-                        className="w-4 h-4 inline ml-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                        />
+                      <svg className="w-4 h-4 inline ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     </>
                   )}
