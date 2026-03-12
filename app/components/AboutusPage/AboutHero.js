@@ -36,7 +36,7 @@ export default function AboutHero() {
 
             <p className="text-gray-400 text-lg leading-relaxed mb-10 max-w-lg">
               For decades, institutional-grade trading was reserved for the
-              ultra-wealthy. We changed that. Since 2020, we&apos;ve been
+              ultra-wealthy. We changed that. Since 2019, we&apos;ve been
               bridging the gap between Wall Street expertise and everyday
               investors.
             </p>

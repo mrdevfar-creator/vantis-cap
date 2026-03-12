@@ -2,6 +2,68 @@
 
 import { useState, useEffect, useRef } from "react";
 
+// ─── TradingView: Forex Performance ──────────────────────────────────────────
+function ForexPerformanceWidget() {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src =
+      "https://s3.tradingview.com/external-embedding/embed-widget-forex-heat-map.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      width: "100%",
+      height: 400,
+      currencies: ["EUR", "USD", "JPY", "GBP", "CHF", "AUD", "CAD", "NZD"],
+      isTransparent: true,
+      colorTheme: "dark",
+      locale: "en",
+    });
+    containerRef.current.appendChild(script);
+  }, []);
+
+  return (
+    <div className="tradingview-widget-container" ref={containerRef}>
+      <div className="tradingview-widget-container__widget" />
+    </div>
+  );
+}
+
+// ─── TradingView: Global Inflation Map ───────────────────────────────────────
+function InflationMapWidget() {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src =
+      "https://s3.tradingview.com/external-embedding/embed-widget-map.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      symbol: "inflation",
+      width: "100%",
+      height: 500,
+      colorTheme: "dark",
+      isTransparent: true,
+      locale: "en",
+    });
+    containerRef.current.appendChild(script);
+  }, []);
+
+  return (
+    <div className="tradingview-widget-container" ref={containerRef}>
+      <div className="tradingview-widget-container__widget" />
+    </div>
+  );
+}
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const fmt = (n, d = 2) =>
   n == null
@@ -707,6 +769,37 @@ export default function LiveMarket() {
               </span>
               <span className="inline-block w-1.5 h-3.5 bg-emerald-400 animate-pulse ml-0.5" />
             </div>
+          </div>
+        </div>
+
+        {/* ══ TradingView Widgets ══ */}
+        <div className="mt-10 space-y-6">
+          {/* Forex Performance */}
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="text-white font-semibold text-sm">
+                Forex Performance
+              </p>
+              <span className="text-gray-600 text-xs ml-auto">
+                Powered by TradingView
+              </span>
+            </div>
+            <ForexPerformanceWidget />
+          </div>
+
+          {/* Global Inflation Map */}
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <p className="text-white font-semibold text-sm">
+                Global Inflation Map
+              </p>
+              <span className="text-gray-600 text-xs ml-auto">
+                Powered by TradingView
+              </span>
+            </div>
+            <InflationMapWidget />
           </div>
         </div>
 

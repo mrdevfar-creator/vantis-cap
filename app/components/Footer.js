@@ -8,56 +8,80 @@ const COLUMNS = [
   {
     heading: "Products",
     links: [
-      { label: "Spot Trading",          href: "https://www.tradingview.com/trading/spot-and-margin/" },
-      { label: "Investment Plans",      href: "/investment" },
-      { label: "Deposit",               href: "/deposit" },
-      { label: "Live Market",           href: "/live-market" },
-      { label: "Trade Management",      href: "/trading-management" },
-      { label: "Trading History",       href: "/trading-history" },
+      {
+        label: "Spot Trading",
+        href: "https://www.tradingview.com/trading/spot-and-margin/",
+      },
+      { label: "Investment Plans", href: "/investment" },
+      { label: "Deposit", href: "/deposit" },
+      { label: "Live Market", href: "/live-market" },
+      { label: "Trade Management", href: "/trading-management" },
+      { label: "Trading History", href: "/trading-history" },
     ],
   },
   {
     heading: "Markets",
     links: [
-      { label: "Crypto Markets",        href: "https://www.tradingview.com/markets/cryptocurrencies/" },
-      { label: "Forex Markets",         href: "https://www.tradingview.com/markets/currencies/" },
-      { label: "Commodities",           href: "https://www.tradingview.com/markets/commodities/" },
-      { label: "Stock Indices",         href: "https://www.tradingview.com/markets/indices/" },
-      { label: "Futures",               href: "https://www.tradingview.com/markets/futures/" },
-      { label: "Market Overview",       href: "https://www.tradingview.com/markets/" },
+      {
+        label: "Crypto Markets",
+        href: "https://www.tradingview.com/markets/cryptocurrencies/",
+      },
+      {
+        label: "Forex Markets",
+        href: "https://www.tradingview.com/markets/currencies/",
+      },
+      {
+        label: "Commodities",
+        href: "https://www.tradingview.com/markets/commodities/",
+      },
+      {
+        label: "Stock Indices",
+        href: "https://www.tradingview.com/markets/indices/",
+      },
+      {
+        label: "Futures",
+        href: "https://www.tradingview.com/markets/futures/",
+      },
+      {
+        label: "Market Overview",
+        href: "https://www.tradingview.com/markets/",
+      },
     ],
   },
   {
     heading: "Tools & Analysis",
     links: [
-      { label: "Live Charts",           href: "https://www.tradingview.com/chart/" },
-      { label: "Screener",              href: "https://www.tradingview.com/screener/" },
-      { label: "Economic Calendar",     href: "https://www.tradingview.com/economic-calendar/" },
-      { label: "Market News",           href: "https://www.tradingview.com/news/" },
-      { label: "Ideas & Signals",       href: "https://www.tradingview.com/ideas/" },
-      { label: "Heat Map",              href: "https://www.tradingview.com/heatmap/" },
+      { label: "Live Charts", href: "https://www.tradingview.com/chart/" },
+      { label: "Screener", href: "https://www.tradingview.com/screener/" },
+      {
+        label: "Economic Calendar",
+        href: "https://www.tradingview.com/economic-calendar/",
+      },
+      { label: "Market News", href: "https://www.tradingview.com/news/" },
+      { label: "Ideas & Signals", href: "https://www.tradingview.com/ideas/" },
+      { label: "Heat Map", href: "https://www.tradingview.com/heatmap/" },
     ],
   },
   {
     heading: "Company",
     links: [
-      { label: "About Us",              href: "/about-us" },
-      { label: "Contact Us",            href: "/contact" },
-      { label: "Testimonials",          href: "/testimonial" },
-      { label: "Careers",               href: "#" },
-      { label: "Press & Media",         href: "#" },
-      { label: "Blog",                  href: "#" },
+      { label: "About Us", href: "/about-us" },
+      { label: "Contact Us", href: "/contact" },
+      { label: "Testimonials", href: "/testimonial" },
+      { label: "Careers", href: "#" },
+      { label: "Press & Media", href: "#" },
+      { label: "Blog", href: "#" },
     ],
   },
   {
     heading: "Support",
     links: [
-      { label: "Help Center",           href: "#" },
-      { label: "Live Chat",             href: "#" },
-      { label: "Terms of Service",      href: "#" },
-      { label: "Privacy Policy",        href: "#" },
-      { label: "Risk Disclosure",       href: "#" },
-      { label: "AML Policy",            href: "#" },
+      { label: "Help Center", href: "#" },
+      { label: "Live Chat", href: "#" },
+      { label: "Terms of Service", href: "#" },
+      { label: "Privacy Policy", href: "#" },
+      { label: "Risk Disclosure", href: "#" },
+      { label: "AML Policy", href: "#" },
     ],
   },
 ];
@@ -74,7 +98,7 @@ const SOCIALS = [
   },
   {
     label: "Telegram",
-    href: "https://telegram.org",
+    href: "https://t.me/vantiscap",
     icon: (
       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
         <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.96 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
@@ -106,17 +130,17 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#0B0E11] border-t border-[#1E2329]">
-
       {/* ── Main grid ── */}
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 pt-14 pb-10">
-
         {/* Top: brand + columns */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-6 mb-12">
-
           {/* Brand — spans 1 col on mobile, full-width block on lg */}
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             {/* Logo */}
-            <Link href="/" className="inline-flex items-center gap-2.5 mb-4 group">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2.5 mb-4 group"
+            >
               <Image
                 src={FooterLogo}
                 alt="Vantis Capital"
@@ -127,7 +151,8 @@ export default function Footer() {
             </Link>
 
             <p className="text-[#848E9C] text-xs leading-relaxed mb-5">
-              Institutional-grade algorithmic trading for everyone. Trusted by 120K+ investors in 180+ countries since 2020.
+              Institutional-grade algorithmic trading for everyone. Trusted by
+              120K+ investors in 180+ countries since 2019.
             </p>
 
             {/* Socials */}
@@ -164,8 +189,18 @@ export default function Footer() {
                         className="text-[#848E9C] hover:text-white text-xs transition-colors duration-150 flex items-center gap-1.5 group"
                       >
                         {link.label}
-                        <svg className="w-2.5 h-2.5 opacity-0 group-hover:opacity-50 transition-opacity shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        <svg
+                          className="w-2.5 h-2.5 opacity-0 group-hover:opacity-50 transition-opacity shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                          />
                         </svg>
                       </a>
                     ) : (
@@ -187,22 +222,30 @@ export default function Footer() {
         <div className="bg-[#12161C] border border-[#2B3139] rounded-xl px-5 py-3.5 mb-8 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-5 flex-wrap">
             {[
-              { label: "Crypto",  status: "Open", color: "bg-emerald-400" },
-              { label: "Forex",   status: "Open", color: "bg-emerald-400" },
-              { label: "Gold",    status: "Open", color: "bg-emerald-400" },
+              { label: "Crypto", status: "Open", color: "bg-emerald-400" },
+              { label: "Forex", status: "Open", color: "bg-emerald-400" },
+              { label: "Gold", status: "Open", color: "bg-emerald-400" },
               { label: "Indices", status: "Open", color: "bg-emerald-400" },
             ].map((m) => (
               <div key={m.label} className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${m.color} animate-pulse`} />
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${m.color} animate-pulse`}
+                />
                 <span className="text-[#848E9C] text-xs">{m.label}</span>
-                <span className="text-emerald-400 text-xs font-semibold">{m.status}</span>
+                <span className="text-emerald-400 text-xs font-semibold">
+                  {m.status}
+                </span>
               </div>
             ))}
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-[#848E9C] text-xs">Powered by</span>
-            <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer"
-              className="text-xs font-semibold text-white hover:text-[#F0B90B] transition-colors">
+            <a
+              href="https://www.tradingview.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-white hover:text-[#F0B90B] transition-colors"
+            >
               TradingView
             </a>
           </div>
@@ -214,9 +257,17 @@ export default function Footer() {
             © 2019 – {currentYear} Vantis Capital. All rights reserved.
           </p>
           <div className="flex items-center gap-5 flex-wrap justify-center">
-            {["Terms of Service", "Privacy Policy", "Risk Disclosure", "Cookie Policy"].map((item) => (
-              <a key={item} href="#"
-                className="text-[#474D57] hover:text-[#848E9C] text-xs transition-colors">
+            {[
+              "Terms of Service",
+              "Privacy Policy",
+              "Risk Disclosure",
+              "Cookie Policy",
+            ].map((item) => (
+              <a
+                key={item}
+                href="#"
+                className="text-[#474D57] hover:text-[#848E9C] text-xs transition-colors"
+              >
                 {item}
               </a>
             ))}
